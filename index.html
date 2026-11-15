@@ -127,10 +127,15 @@
                 
                 <div class="glass-card p-4 sm:p-6 border-l-4 border-green-500">
                     <h2 class="sec-title"><span class="sec-badge">૧</span><span>ગ્રાહકની વિગત</span><i class="fas fa-user-tie sec-ico"></i></h2>
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" onclick="openCustomers()" class="flex-1 bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-2.5 rounded-lg text-sm"><i class="fas fa-users mr-1"></i> જૂના ગ્રાહક (<span id="custCount">0</span>)</button>
+                        <button type="button" onclick="saveCustomerOnly()" class="flex-1 bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 rounded-lg text-sm"><i class="fas fa-user-plus mr-1"></i> ગ્રાહક સેવ કરો</button>
+                    </div>
+                    <datalist id="custNames"></datalist>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">ખેડૂત/ગ્રાહકનું નામ</label>
-                            <input type="text" id="farmerName" required class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="નામ લખો">
+                            <input type="text" id="farmerName" list="custNames" autocomplete="off" required class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="નામ લખો">
                         </div>
                         <div>
                             <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">મોબાઈલ નંબર</label>
@@ -528,10 +533,18 @@
                 const have = new Set(local.map(b => b.id));
                 const remoteIds = new Set(remote.map(b => b && b.id));
                 let added = 0;
-                remote.forEach(b => { if (b && b.id && !have.has(b.id)) { local.push(b); added++; } });
+                remote.forEach(b => {
+                    if (!b || !b.id) return;
+                    if (!have.has(b.id)) { local.push(b); added++; }
+                    else {
+                        const ix = local.findIndex(x => x.id === b.id);
+                        if (ix >= 0 && (b.updatedAt || 0) > (local[ix].updatedAt || 0)) { local[ix] = b; added++; }
+                    }
+                });
                 if (added) { local.sort((a, b) => a.id - b.id); localStorage.setItem('komalBills', JSON.stringify(local)); }
                 local.filter(b => !remoteIds.has(b.id)).forEach(b => sheetPost(b).catch(() => {}));
-                updateHero();
+                updateHero(); refreshCustomers();
+                pullCustomers(url);
                 if (added && !document.getElementById('reportsSection').classList.contains('hidden')) generateReport();
             } catch (e) { /* offline or not set up */ } finally { pulling = false; }
         }
@@ -552,6 +565,7 @@
             const q = JSON.parse(localStorage.getItem('komalQueue')) || [], left = [];
             for (const b of q) { try { await sheetPost(b); } catch (e) { left.push(b); } }
             localStorage.setItem('komalQueue', JSON.stringify(left));
+            flushCustQueue();
         }
         function updateHero() {
             const t = todayStr(); const all = JSON.parse(localStorage.getItem('komalBills')) || [];
@@ -805,6 +819,7 @@
                 date: orig ? orig.date : today,
                 fDate: orig ? orig.fDate : fDate,
                 edited: !!orig,
+                updatedAt: Date.now(),
                 farmerName: farmerName,
                 businessName: businessName,
                 mobileNo: mobileNo,
@@ -833,6 +848,7 @@
             if (ix >= 0) bills[ix] = currentBillData; else bills.push(currentBillData);
             localStorage.setItem('komalBills', JSON.stringify(bills));
             updateHero();
+            upsertCustomer({ name: farmerName, mobile: mobileNo, business: businessName, village: village, vehicle: currentBillData.vehicleNo });
             syncToSheet(currentBillData);
 
             let displayName = businessName ? `${farmerName} (${businessName})` : farmerName;
@@ -1195,7 +1211,103 @@ ${labor}---------------------------
             printWin.document.close();
         }
 
+        // ---- ગ્રાહક યાદી: બિલમાંથી આપોઆપ + મેન્યુઅલ સેવ ----
+        function custKey(c) { const p = normPhone(c.mobile); return p.length >= 11 ? p : 'n:' + String(c.name || '').trim().toLowerCase(); }
+        function getCustomers() {
+            const map = new Map();
+            const put = (c, ts) => {
+                if (!c.name || !String(c.name).trim()) return;
+                const k = custKey(c), old = map.get(k);
+                if (!old || ts >= old.ts) map.set(k, { c, ts });
+            };
+            (JSON.parse(localStorage.getItem('komalCustomers')) || []).forEach(c => put(c, c.updatedAt || 0));
+            (JSON.parse(localStorage.getItem('komalBills')) || []).forEach(b => put({ name: b.farmerName, mobile: b.mobileNo, business: b.businessName, village: b.village, vehicle: b.vehicleNo }, b.updatedAt || b.id || 0));
+            return [...map.values()].map(x => x.c).sort((a, b) => a.name.localeCompare(b.name, 'gu'));
+        }
+        function refreshCustomers() {
+            const list = getCustomers();
+            document.getElementById('custCount').innerText = list.length;
+            document.getElementById('custNames').innerHTML = list.map(c => `<option value="${String(c.name).replace(/"/g, '&quot;')}">${c.village || ''} ${c.mobile || ''}</option>`).join('');
+        }
+        function fillCustomer(c, onlyEmpty) {
+            const set = (id, v) => { const el = document.getElementById(id); if (!onlyEmpty || !el.value) el.value = v || ''; };
+            set('farmerName', c.name); set('mobileNo', c.mobile); set('businessName', c.business); set('villageName', c.village); set('vehicleNo', c.vehicle);
+        }
+        function openCustomers() { document.getElementById('custSearch').value = ''; renderCustomers(); document.getElementById('custModal').classList.remove('hidden'); }
+        function closeCustomers() { document.getElementById('custModal').classList.add('hidden'); }
+        function renderCustomers() {
+            const q = document.getElementById('custSearch').value.trim().toLowerCase();
+            const list = getCustomers().filter(c => !q || [c.name, c.mobile, c.village, c.business, c.vehicle].join(' ').toLowerCase().includes(q));
+            window._custShown = list;
+            document.getElementById('custList').innerHTML = list.length ? list.map((c, i) => `
+                <button type="button" onclick="pickCustomer(${i})" class="w-full text-left p-3 rounded-lg border bg-gray-50 active:bg-green-50">
+                    <div class="font-bold text-gray-800">${c.name}${c.business ? ` <span class="text-green-600 text-xs">(${c.business})</span>` : ''}</div>
+                    <div class="text-xs text-gray-500">${[c.mobile, c.village, c.vehicle].filter(Boolean).join(' • ') || '-'}</div>
+                </button>`).join('') : '<p class="text-center text-gray-400 text-sm p-4">કોઈ ગ્રાહક નથી</p>';
+        }
+        function pickCustomer(i) { fillCustomer(window._custShown[i], false); closeCustomers(); }
+        function saveCustLocal(c) {
+            const arr = JSON.parse(localStorage.getItem('komalCustomers')) || [];
+            const ix = arr.findIndex(x => custKey(x) === c.key);
+            if (ix < 0) arr.push(c); else if ((arr[ix].updatedAt || 0) <= (c.updatedAt || 0)) arr[ix] = c;
+            localStorage.setItem('komalCustomers', JSON.stringify(arr));
+            refreshCustomers();
+        }
+        function custQueue(c) {
+            const q = JSON.parse(localStorage.getItem('komalCustQueue')) || [];
+            const ix = q.findIndex(x => x.key === c.key);
+            if (ix >= 0) q[ix] = c; else q.push(c);
+            localStorage.setItem('komalCustQueue', JSON.stringify(q));
+        }
+        function custPost(c) {
+            if (!getSheetUrl() || !getPin()) return;
+            if (localStorage.getItem('custReady') !== '1') { custQueue(c); return; }
+            sheetPost(Object.assign({ _type: 'customer' }, c)).catch(() => custQueue(c));
+        }
+        async function flushCustQueue() {
+            if (localStorage.getItem('custReady') !== '1' || !getSheetUrl() || !getPin()) return;
+            const q = JSON.parse(localStorage.getItem('komalCustQueue')) || [], left = [];
+            for (const c of q) { try { await sheetPost(Object.assign({ _type: 'customer' }, c)); } catch (e) { left.push(c); } }
+            localStorage.setItem('komalCustQueue', JSON.stringify(left));
+        }
+        function upsertCustomer(c) {
+            if (!c.name || !String(c.name).trim()) return;
+            c.name = String(c.name).trim();
+            c.key = custKey(c); c.updatedAt = Date.now();
+            saveCustLocal(c); custPost(c);
+        }
+        async function pullCustomers(url) {
+            try {
+                const res = await fetch(authUrl(url) + '&type=customers&t=' + Date.now());
+                const r = await res.json();
+                if (!r || !Array.isArray(r.customers)) return;   // જૂની Script → ગ્રાહક સિંક બંધ
+                localStorage.setItem('custReady', '1');
+                const have = new Set(r.customers.map(c => c && c.key));
+                r.customers.forEach(c => { if (c && c.key && c.name) saveCustLocal(c); });
+                const mine = (JSON.parse(localStorage.getItem('komalCustomers')) || []).map(c => { if (!c.key) { c.key = custKey(c); c.updatedAt = c.updatedAt || Date.now(); } return c; });
+                localStorage.setItem('komalCustomers', JSON.stringify(mine));
+                mine.filter(c => !have.has(c.key)).forEach(c => custPost(c));
+                flushCustQueue();
+            } catch (e) { /* offline */ }
+        }
+        function saveCustomerOnly() {
+            const g = id => document.getElementById(id).value.trim();
+            const c = { name: g('farmerName'), mobile: g('mobileNo'), business: g('businessName'), village: g('villageName'), vehicle: g('vehicleNo') };
+            if (!c.name) { alert('નામ લખો.'); return; }
+            upsertCustomer(c);
+            alert('ગ્રાહક સેવ થઈ ગયા: ' + c.name);
+        }
+
         window.onload = () => {
+            document.body.appendChild(document.getElementById('custModal'));
+            refreshCustomers();
+            document.getElementById('farmerName').addEventListener('change', e => {
+                const c = getCustomers().find(x => x.name === e.target.value.trim()); if (c) fillCustomer(c, true);
+            });
+            document.getElementById('mobileNo').addEventListener('input', e => {
+                const p = normPhone(e.target.value);
+                if (p.length >= 13) { const c = getCustomers().find(x => normPhone(x.mobile) === p); if (c) fillCustomer(c, true); }
+            });
             document.body.appendChild(document.getElementById('billTemplate'));
             document.body.appendChild(document.getElementById('shareOptionsModal'));
             let today = todayStr();
@@ -1210,5 +1322,13 @@ ${labor}---------------------------
             document.getElementById('billingForm').addEventListener('submit', e => e.preventDefault());
         }
     </script>
+<div id="custModal" class="hidden fixed inset-0 bg-black/60 z-[65] flex justify-center items-end sm:items-center backdrop-blur-sm">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl p-4 w-full sm:w-[90%] sm:max-w-md shadow-2xl relative" style="max-height:88vh;display:flex;flex-direction:column;">
+            <button type="button" onclick="closeCustomers()" class="absolute top-1 right-1 w-11 h-11 text-gray-400 text-3xl font-light" aria-label="બંધ કરો">&times;</button>
+            <h3 class="text-lg font-bold text-gray-800 mb-3"><i class="fas fa-users mr-2 text-indigo-600"></i>ગ્રાહક યાદી</h3>
+            <input type="search" id="custSearch" oninput="renderCustomers()" placeholder="નામ / નંબર / ગામ શોધો" class="w-full p-3 border rounded-lg bg-gray-50 mb-3 text-base">
+            <div id="custList" class="space-y-2" style="overflow-y:auto;flex:1;"></div>
+        </div>
+    </div>
 </body>
 </html>
