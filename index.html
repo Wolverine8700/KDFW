@@ -123,6 +123,7 @@
                 <div class="hero-stats"><div><b id="heroCount">0</b><span>બિલ</span></div><div><b id="heroCash">₹0</b><span>જમા</span></div><div><b id="heroShort">0</b><span>ઘટ્ટ kg</span></div></div>
             </div>
             <form id="billingForm" class="space-y-5 sm:space-y-7">
+                <div id="editBanner" class="hidden bg-orange-50 border-2 border-orange-300 text-orange-800 rounded-xl p-3 text-sm font-bold flex justify-between items-center gap-2"><span>✏️ જૂનું બિલ સુધારી રહ્યા છો</span><button type="button" onclick="cancelEdit()" class="bg-white border border-orange-300 px-3 py-1.5 rounded-lg text-xs">રદ કરો</button></div>
                 
                 <div class="glass-card p-4 sm:p-6 border-l-4 border-green-500">
                     <h2 class="sec-title"><span class="sec-badge">૧</span><span>ગ્રાહકની વિગત</span><i class="fas fa-user-tie sec-ico"></i></h2>
@@ -250,7 +251,7 @@
 
                 <div id="saveBar" class="fixed bottom-0 left-0 right-0 p-3 sm:static sm:p-0 bg-white sm:bg-transparent border-t sm:border-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:shadow-none z-40">
                     <div class="container mx-auto max-w-4xl px-1 sm:px-0 flex items-center gap-3"><div class="bar-total"><span>કુલ બિલ</span><b>₹<span id="barTotal">0</span></b></div><button type="button" onclick="saveAndShowOptions()" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 active:from-green-700 active:to-emerald-700 text-white font-extrabold py-3.5 sm:py-4 px-4 rounded-xl shadow-lg transition-transform active:scale-[0.98] text-lg sm:text-xl flex justify-center items-center">
-                            <i class="fas fa-check-circle mr-2"></i> બિલ સેવ કરો
+                            <i class="fas fa-check-circle mr-2"></i> <span id="saveBtnLabel">બિલ સેવ કરો</span>
                         </button>
                     </div>
                 </div>
@@ -303,6 +304,12 @@
                         </tbody>
                     </table>
 
+                    <div style="background-color: #fffbeb; padding: 12px 15px; border-radius: 8px; border: 1px solid #fde68a; font-size: 15px; margin-bottom: 15px; line-height: 1.7;">
+                        <div style="font-weight: bold; color: #92400e; margin-bottom: 4px;">મજૂરી ગણતરી</div>
+                        <div id="btGradingLine"></div>
+                        <div id="btBhardoLine" style="display:none;"></div>
+                    </div>
+
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 15px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                             <span>કુલ બિલ રકમ:</span>
@@ -331,7 +338,7 @@
                             <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mb-2">
                                 <i class="fas fa-check text-2xl"></i>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-800">બિલ સેવ થઈ ગયું!</h3>
+                            <h3 id="modalTitle" class="text-lg font-bold text-gray-800">બિલ સેવ થઈ ગયું!</h3>
                         </div>
                         
                         <div class="bg-gray-50 rounded-lg p-3 text-center mb-5 border border-gray-100">
@@ -351,6 +358,13 @@
                             <button type="button" onclick="downloadVCard()" class="w-full bg-indigo-500 active:bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-transform active:scale-[0.98] shadow-sm">
                                 <i class="fas fa-address-card text-xl mr-2"></i> vCard ડાઉનલોડ કરો
                             </button>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" onclick="printBill()" class="bg-gray-800 active:bg-gray-900 text-white font-bold py-3 px-2 rounded-xl text-sm"><i class="fas fa-print mr-1"></i> પ્રિન્ટ / PDF</button>
+                                <button type="button" onclick="downloadBillImage()" class="bg-teal-600 active:bg-teal-700 text-white font-bold py-3 px-2 rounded-xl text-sm"><i class="fas fa-download mr-1"></i> ફોટો ડાઉનલોડ</button>
+                                <button type="button" onclick="callBillCurrent()" class="bg-blue-600 active:bg-blue-700 text-white font-bold py-3 px-2 rounded-xl text-sm"><i class="fas fa-phone mr-1"></i> કોલ કરો</button>
+                                <button type="button" onclick="smsBillCurrent()" class="bg-orange-500 active:bg-orange-600 text-white font-bold py-3 px-2 rounded-xl text-sm"><i class="fas fa-comment-sms mr-1"></i> SMS મોકલો</button>
+                            </div>
                         </div>
                         
                         <div id="billImageContainer" class="hidden mt-4">
@@ -358,7 +372,7 @@
                         </div>
                         
                         <div class="mt-5 pt-3 text-center">
-                            <button type="button" onclick="resetFormAndCloseModal()" class="text-gray-500 hover:text-gray-800 font-bold text-sm">
+                            <button type="button" id="modalBottomBtn" onclick="resetFormAndCloseModal()" class="text-gray-500 hover:text-gray-800 font-bold text-sm">
                                 નવું બિલ બનાવો
                             </button>
                         </div>
@@ -385,6 +399,11 @@
                 <button onclick="printShortageStatement()" class="w-full sm:w-auto bg-red-600 active:bg-red-700 text-white px-4 py-3 rounded-lg font-bold shadow-md transition-transform active:scale-95 flex items-center justify-center text-sm">
                     <i class="fas fa-print mr-2"></i> ઘટ્ટ રિપોર્ટ કાઢો
                 </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="downloadAllData()" class="bg-teal-600 active:bg-teal-700 text-white px-3 py-3.5 rounded-xl font-bold shadow-md text-sm"><i class="fas fa-file-excel mr-1"></i> બધો ડેટા ડાઉનલોડ</button>
+                <button onclick="downloadAllContacts()" class="bg-indigo-600 active:bg-indigo-700 text-white px-3 py-3.5 rounded-xl font-bold shadow-md text-sm"><i class="fas fa-address-book mr-1"></i> બધા કોન્ટેક્ટ (vCard)</button>
             </div>
 
             <div class="grid grid-cols-2 gap-3 sm:gap-4">
@@ -679,6 +698,39 @@
             });
         }
 
+        const n2 = x => String(parseFloat((+x || 0).toFixed(2)));
+        let editingId = null, editRates = null;
+        function curRates() { return editRates || rates; }
+        function findBill(id) { return (JSON.parse(localStorage.getItem('komalBills')) || []).find(x => x.id === id); }
+
+        function normPhone(p) {
+            let d = String(p || '').replace(/\D/g, '');
+            if (!d) return '';
+            if (d.length === 10) return '+91' + d;
+            if (d.length === 11 && d[0] === '0') return '+91' + d.slice(1);
+            return '+' + d;
+        }
+        function waNum(p) { return normPhone(p).replace('+', ''); }
+
+        // દરેક બિલની મજૂરી ગણતરી (જૂના બિલ માટે પણ)
+        function getBreakdown(b) {
+            if (b.gradingRate != null) {
+                const bq = b.hasBhardo ? (b.bhardoWeight || 0) : 0;
+                return { gQty: b.gradingQty, gRate: b.gradingRate, gAmt: b.gradingAmt, bQty: bq, bRate: b.bhardoRate || 0, bAmt: b.bhardoAmt || 0 };
+            }
+            const bQty = b.hasBhardo ? (b.bhardoWeight || 0) : 0;
+            const bRate = rates.bhardo, bAmt = bQty * bRate;
+            const gAmt = (b.totalBill || 0) - bAmt;
+            const gt = (b.goodWheat || 0) + (b.thinWheat || 0), tw = b.totalWeight || 0;
+            let gQty, gRate;
+            if (Math.abs(tw * rates.grading - gAmt) < 0.01) { gQty = tw; gRate = rates.grading; }
+            else if (Math.abs(gt * rates.grading - gAmt) < 0.01) { gQty = gt; gRate = rates.grading; }
+            else { gQty = gt || tw; gRate = gQty ? parseFloat((gAmt / gQty).toFixed(2)) : 0; }
+            return { gQty, gRate, gAmt, bQty, bRate, bAmt };
+        }
+        function gradingLine(bd) { return `ગ્રેડિંગ: ${n2(bd.gQty)} × ${n2(bd.gRate)} = ₹${n2(bd.gAmt)}`; }
+        function bhardoLine(bd) { return `ભરડો: ${n2(bd.bQty)} × ${n2(bd.bRate)} = ₹${n2(bd.bAmt)}`; }
+
         function calculateTotals() {
             let totalGood = packingData.filter(b => b.type === 'good').reduce((sum, b) => sum + b.totalWeight, 0);
             let totalThin = packingData.filter(b => b.type === 'thin').reduce((sum, b) => sum + b.totalWeight, 0);
@@ -699,13 +751,14 @@
                 shortLbl.classList.replace('text-yellow-400', 'text-red-500');
             }
 
-            let gradingAmt = received * rates.grading;
+            const r = curRates();
+            let gradingAmt = received * r.grading;
 
             let bhardoW = 0;
             let bhardoAmt = 0;
             if(document.getElementById('hasBhardo').checked) {
                 bhardoW = parseFloat(document.getElementById('bhardoWeight').value) || 0;
-                bhardoAmt = bhardoW * rates.bhardo;
+                bhardoAmt = bhardoW * r.bhardo;
             }
 
             let totalBill = gradingAmt + bhardoAmt;
@@ -713,12 +766,14 @@
             document.getElementById('receivedAmount').value = totalBill.toFixed(2);
             document.getElementById('barTotal').innerText = Math.round(totalBill).toLocaleString('en-IN');
 
-            let breakdown = `ગ્રેડિંગ: ${received} × ${rates.grading} = ₹${gradingAmt.toFixed(0)}`;
-            if(bhardoW > 0) breakdown += ` + ભરડો: ${bhardoW} × ${rates.bhardo} = ₹${bhardoAmt.toFixed(0)}`;
+            let breakdown = `ગ્રેડિંગ: ${n2(received)} × ${n2(r.grading)} = ₹${n2(gradingAmt)}`;
+            if(bhardoW > 0) breakdown += ` + ભરડો: ${n2(bhardoW)} × ${n2(r.bhardo)} = ₹${n2(bhardoAmt)}`;
             document.getElementById('calculationBreakdown').innerText = breakdown;
         }
 
         async function saveAndShowOptions() {
+            const orig = editingId ? (JSON.parse(localStorage.getItem('komalBills')) || []).find(x => x.id === editingId) : null;
+            const r = curRates();
             let farmerName = document.getElementById('farmerName').value;
             let businessName = document.getElementById('businessName').value;
             let totalReceived = parseFloat(document.getElementById('totalReceived').value);
@@ -746,9 +801,10 @@
             let fDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
             currentBillData = {
-                id: Date.now(),
-                date: today,
-                fDate: fDate,
+                id: orig ? orig.id : Date.now(),
+                date: orig ? orig.date : today,
+                fDate: orig ? orig.fDate : fDate,
+                edited: !!orig,
                 farmerName: farmerName,
                 businessName: businessName,
                 mobileNo: mobileNo,
@@ -760,6 +816,11 @@
                 shortage: shortage,
                 hasBhardo: hasBhardo,
                 bhardoWeight: bhardoWeight,
+                gradingQty: totalReceived,
+                gradingRate: r.grading,
+                gradingAmt: totalReceived * r.grading,
+                bhardoRate: r.bhardo,
+                bhardoAmt: bhardoWeight * r.bhardo,
                 totalBill: totalBill,
                 received: received,
                 pending: pendingAmount > 0 ? pendingAmount : 0,
@@ -768,7 +829,8 @@
             };
 
             let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
-            bills.push(currentBillData);
+            const ix = bills.findIndex(x => x.id === currentBillData.id);
+            if (ix >= 0) bills[ix] = currentBillData; else bills.push(currentBillData);
             localStorage.setItem('komalBills', JSON.stringify(bills));
             updateHero();
             syncToSheet(currentBillData);
@@ -778,33 +840,7 @@
             document.getElementById('modalTotalWheat').innerText = totalReceived;
             document.getElementById('modalBill').innerText = totalBill;
             
-            document.getElementById('btName').innerText = farmerName;
-            if(businessName) {
-                document.getElementById('btBusinessRow').style.display = 'block';
-                document.getElementById('btBusiness').innerText = businessName;
-            } else {
-                document.getElementById('btBusinessRow').style.display = 'none';
-            }
-
-            document.getElementById('btVillage').innerText = village || '-';
-            document.getElementById('btVehicle').innerText = currentBillData.vehicleNo || '-';
-            document.getElementById('btDate').innerText = fDate;
-            document.getElementById('btMobile').innerText = mobileNo || '-';
-            
-            document.getElementById('btTotalW').innerText = totalReceived;
-            document.getElementById('btGoodW').innerText = totalGood;
-            document.getElementById('btThinW').innerText = totalThin;
-            
-            if(hasBhardo && bhardoWeight > 0) {
-                document.getElementById('btBhardoRow').style.display = 'table-row';
-                document.getElementById('btBhardoW').innerText = bhardoWeight;
-            } else {
-                document.getElementById('btBhardoRow').style.display = 'none';
-            }
-
-            document.getElementById('btTotalB').innerText = totalBill;
-            document.getElementById('btRecB').innerText = received;
-            document.getElementById('btMode').innerText = paymentMode;
+            fillBillTemplate(currentBillData);
 
             let billTemplate = document.getElementById('billTemplate');
             billTemplate.style.display = 'block'; 
@@ -829,34 +865,11 @@
                 billTemplate.style.display = 'none'; 
             }
 
+            setModalMode(orig ? 'edited' : 'saved');
             document.getElementById('shareOptionsModal').classList.remove('hidden');
         }
 
-        function shareWhatsAppText() {
-            if(!currentBillData) return;
-            let b = currentBillData;
-            let displayHeader = b.businessName ? `👤 *ગ્રાહક:* ${b.farmerName} (${b.businessName})` : `👤 *ગ્રાહક:* ${b.farmerName}`;
-            let bhardoText = b.hasBhardo && b.bhardoWeight > 0 ? `🌾 *ભરડો જથ્થો:* ${b.bhardoWeight} કિલો
-` : '';
-
-            let whatsappMsg = `*🌾 કોમલ ડેરી ફાર્મ - બિલ 🌾*
----------------------------
-${displayHeader}
-📅 *તારીખ:* ${b.fDate}
----------------------------
-📦 *કુલ આવેલ ઘઉં:* ${b.totalWeight} કિલો
-✅ *સારા ઘઉં:* ${b.goodWheat} કિલો
-🌾 *જીણા ઘઉં:* ${b.thinWheat} કિલો
-${bhardoText}---------------------------
-💰 *કુલ બિલ રકમ:* ₹${b.totalBill}
-💵 *જમા રકમ:* ₹${b.received}
-💳 *પેમેન્ટ:* ${b.paymentMode}
----------------------------
-🙏 *આભાર!*`;
-            
-            let url = `https://wa.me/${b.mobileNo ? '91'+b.mobileNo : ''}?text=${encodeURIComponent(whatsappMsg)}`;
-            window.open(url, '_blank');
-        }
+        function shareWhatsAppText() { if(currentBillData) waSend(currentBillData); }
 
         async function shareWhatsAppImage() {
             if(!currentBillData || !generatedBillDataURL) { alert("ફોટો તૈયાર નથી."); return; }
@@ -879,18 +892,15 @@ ${bhardoText}---------------------------
             document.body.removeChild(a);
         }
 
+        function vEsc(t) { return String(t || '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, ' '); }
         function generateVCardString(name, business, phone, city) {
-            let vcard = "BEGIN:VCARD\nVERSION:3.0\n";
-            vcard += `FN:${name}\n`;
-            if (business) vcard += `ORG:${business}\n`;
-            if (phone) {
-                let cleanedPhone = phone.replace(/\D/g, '');
-                if(cleanedPhone.length === 10) cleanedPhone = "+91" + cleanedPhone;
-                vcard += `TEL;TYPE=WORK,VOICE:${cleanedPhone}\n`;
-            }
-            if (city) vcard += `ADR;TYPE=WORK:;;;${city};;;\n`;
-            vcard += "END:VCARD";
-            return vcard;
+            const l = ['BEGIN:VCARD', 'VERSION:3.0', 'N:;' + vEsc(name) + ';;;', 'FN:' + vEsc(name)];
+            if (business) l.push('ORG:' + vEsc(business));
+            const p = normPhone(phone);
+            if (p) l.push('TEL;TYPE=CELL:' + p);
+            if (city) l.push('ADR;TYPE=WORK:;;;' + vEsc(city) + ';;;');
+            l.push('END:VCARD');
+            return l.join('\r\n');
         }
 
         function downloadVCard() {
@@ -920,9 +930,171 @@ ${bhardoText}---------------------------
             } else { alert("નંબર ઉપલબ્ધ નથી."); }
         }
 
+        function fillBillTemplate(b) {
+            const bd = getBreakdown(b);
+            const set = (id, v) => document.getElementById(id).innerText = v;
+            set('btName', b.farmerName);
+            document.getElementById('btBusinessRow').style.display = b.businessName ? 'block' : 'none';
+            set('btBusiness', b.businessName || '');
+            set('btVillage', b.village || '-');
+            set('btVehicle', b.vehicleNo || '-');
+            set('btDate', b.fDate);
+            set('btMobile', b.mobileNo || '-');
+            set('btTotalW', b.totalWeight);
+            set('btGoodW', b.goodWheat);
+            set('btThinW', b.thinWheat);
+            if (b.hasBhardo && b.bhardoWeight > 0) {
+                document.getElementById('btBhardoRow').style.display = 'table-row';
+                set('btBhardoW', b.bhardoWeight);
+            } else document.getElementById('btBhardoRow').style.display = 'none';
+            set('btGradingLine', gradingLine(bd));
+            const bl = document.getElementById('btBhardoLine');
+            if (bd.bQty > 0) { bl.style.display = 'block'; bl.innerText = '+ ' + bhardoLine(bd); } else bl.style.display = 'none';
+            set('btTotalB', b.totalBill);
+            set('btRecB', b.received);
+            set('btMode', b.paymentMode);
+        }
+
+        function billMessage(b) {
+            const bd = getBreakdown(b);
+            const head = b.businessName ? `👤 *ગ્રાહક:* ${b.farmerName} (${b.businessName})` : `👤 *ગ્રાહક:* ${b.farmerName}`;
+            const bh = b.hasBhardo && b.bhardoWeight > 0 ? `🌾 *ભરડો જથ્થો:* ${b.bhardoWeight} કિલો\n` : '';
+            const labor = gradingLine(bd) + '\n' + (bd.bQty > 0 ? '+ ' + bhardoLine(bd) + '\n' : '');
+            return `*🌾 કોમલ ડેરી ફાર્મ - બિલ 🌾*
+---------------------------
+${head}
+📅 *તારીખ:* ${b.fDate}
+---------------------------
+📦 *કુલ આવેલ ઘઉં:* ${b.totalWeight} કિલો
+✅ *સારા ઘઉં:* ${b.goodWheat} કિલો
+🌾 *જીણા ઘઉં:* ${b.thinWheat} કિલો
+${bh}---------------------------
+🧮 *મજૂરી:*
+${labor}---------------------------
+💰 *કુલ બિલ રકમ:* ₹${b.totalBill}
+💵 *જમા રકમ:* ₹${b.received}
+💳 *પેમેન્ટ:* ${b.paymentMode}
+---------------------------
+🙏 *આભાર!*`;
+        }
+        function waSend(b) { window.open(`https://wa.me/${waNum(b.mobileNo)}?text=${encodeURIComponent(billMessage(b))}`, '_blank'); }
+        function smsSend(b) {
+            if (!b.mobileNo) { alert('મોબાઈલ નંબર નથી.'); return; }
+            location.href = `sms:${normPhone(b.mobileNo)}?body=${encodeURIComponent(billMessage(b).replace(/\*/g, ''))}`;
+        }
+        function callSend(b) {
+            if (!b.mobileNo) { alert('મોબાઈલ નંબર નથી.'); return; }
+            location.href = 'tel:' + normPhone(b.mobileNo);
+        }
+        function callBill(id) { const b = findBill(id); if (b) callSend(b); }
+        function waBill(id) { const b = findBill(id); if (b) waSend(b); }
+        function smsBill(id) { const b = findBill(id); if (b) smsSend(b); }
+        function callBillCurrent() { if (currentBillData) callSend(currentBillData); }
+        function smsBillCurrent() { if (currentBillData) smsSend(currentBillData); }
+
+        function printBill() {
+            if (!generatedBillDataURL) { alert('ફોટો તૈયાર નથી.'); return; }
+            const w = window.open('', '_blank');
+            if (!w) { alert('પ્રિન્ટ વિન્ડો ખુલી નથી. "ફોટો ડાઉનલોડ" વાપરો.'); return; }
+            w.document.write(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>બિલ</title><style>body{margin:0;text-align:center}img{width:100%;max-width:560px}@page{margin:10mm}</style></head><body><img src="${generatedBillDataURL}" onload="setTimeout(function(){window.print()},300)"></body></html>`);
+            w.document.close();
+        }
+        function downloadBillImage() {
+            if (!generatedBillDataURL || !currentBillData) { alert('ફોટો તૈયાર નથી.'); return; }
+            fallbackDownloadImage();
+        }
+
+        function setModalMode(kind) {
+            const t = document.getElementById('modalTitle'), btn = document.getElementById('modalBottomBtn');
+            if (kind === 'view') { t.innerText = 'બિલ'; btn.innerText = 'બંધ કરો'; btn.onclick = closeShareModal; }
+            else {
+                t.innerText = kind === 'edited' ? 'બિલ સુધારીને સેવ થયું!' : 'બિલ સેવ થઈ ગયું!';
+                btn.innerText = 'નવું બિલ બનાવો'; btn.onclick = resetFormAndCloseModal;
+            }
+        }
+
+        async function openBillFromReport(id) {
+            const b = findBill(id); if (!b) return;
+            currentBillData = b; generatedBillDataURL = null;
+            fillBillTemplate(b);
+            document.getElementById('modalFarmerName').innerText = b.businessName ? `${b.farmerName} (${b.businessName})` : b.farmerName;
+            document.getElementById('modalTotalWheat').innerText = b.totalWeight;
+            document.getElementById('modalBill').innerText = b.totalBill;
+            const ic = document.getElementById('billImageContainer');
+            ic.innerHTML = '<p class="text-xs text-center text-gray-400">બિલ તૈયાર થઈ રહ્યું છે...</p>'; ic.classList.remove('hidden');
+            setModalMode('view');
+            document.getElementById('shareOptionsModal').classList.remove('hidden');
+            const t = document.getElementById('billTemplate');
+            t.style.display = 'block';
+            try {
+                const canvas = await html2canvas(t, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+                generatedBillDataURL = canvas.toDataURL('image/png');
+                ic.innerHTML = '<p class="text-[10px] text-center text-gray-400 mb-2">પ્રિવ્યૂ</p><img src="' + generatedBillDataURL + '" alt="Bill" class="mx-auto rounded border border-gray-200 shadow-sm max-h-40 object-contain">';
+            } catch (e) { ic.innerHTML = '<p class="text-xs text-center text-red-500">ફોટો બન્યો નથી.</p>'; }
+            finally { t.style.display = 'none'; }
+        }
+
+        function exitEditMode() {
+            editingId = null; editRates = null;
+            document.getElementById('editBanner').classList.add('hidden');
+            document.getElementById('saveBtnLabel').innerText = 'બિલ સેવ કરો';
+        }
+        function cancelEdit() { resetFormAndCloseModal(); }
+        function editBill(id) {
+            const b = findBill(id); if (!b) return;
+            closeShareModal();
+            const bd = getBreakdown(b);
+            editingId = id;
+            editRates = { grading: bd.gRate, bhardo: bd.bQty > 0 ? bd.bRate : rates.bhardo };
+            currentBillData = null; generatedBillDataURL = null;
+            switchTab('newBill');
+            const v = (i, x) => document.getElementById(i).value = (x == null ? '' : x);
+            v('farmerName', b.farmerName); v('businessName', b.businessName); v('mobileNo', b.mobileNo);
+            v('villageName', b.village); v('vehicleNo', b.vehicleNo); v('totalReceived', b.totalWeight);
+            packingData = (b.packingDetails || []).map(x => ({ ...x }));
+            document.getElementById('hasBhardo').checked = !!b.hasBhardo;
+            toggleBhardo();
+            v('bhardoWeight', b.hasBhardo ? b.bhardoWeight : '');
+            v('paymentMode', b.paymentMode);
+            renderPackingList(); calculateTotals();
+            v('receivedAmount', b.received);
+            syncSegs();
+            document.getElementById('editBanner').classList.remove('hidden');
+            document.getElementById('saveBtnLabel').innerText = 'સુધારેલું બિલ સેવ કરો';
+            window.scrollTo(0, 0);
+        }
+
+        function saveFile(name, content, type) {
+            const url = URL.createObjectURL(new Blob([content], { type }));
+            const a = document.createElement('a'); a.href = url; a.download = name;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+        function downloadAllData() {
+            const bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            if (!bills.length) { alert('કોઈ ડેટા નથી.'); return; }
+            const head = ['તારીખ', 'નામ', 'પેઢી', 'મોબાઈલ', 'ગામ', 'વાહન', 'આવેલ કુલ જથ્થો', 'સારા ઘઉં', 'જીણા ઘઉં', 'ઘટ્ટ', 'ગ્રેડિંગ જથ્થો', 'ગ્રેડિંગ ભાવ', 'ગ્રેડિંગ રકમ', 'ભરડો જથ્થો', 'ભરડો ભાવ', 'ભરડો રકમ', 'કુલ બિલ', 'જમા', 'બાકી', 'પેમેન્ટ મોડ'];
+            const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
+            const rows = bills.slice().sort((a, b) => a.id - b.id).map(b => {
+                const d = getBreakdown(b);
+                return [b.fDate, b.farmerName, b.businessName, b.mobileNo, b.village, b.vehicleNo, b.totalWeight, b.goodWheat, b.thinWheat, n2(b.shortage), n2(d.gQty), n2(d.gRate), n2(d.gAmt), n2(d.bQty), d.bQty ? n2(d.bRate) : '', n2(d.bAmt), b.totalBill, b.received, n2((b.totalBill || 0) - (b.received || 0)), b.paymentMode].map(q).join(',');
+            });
+            saveFile('Komal_Data_' + todayStr() + '.csv', '\uFEFF' + [head.map(q).join(',')].concat(rows).join('\r\n'), 'text/csv;charset=utf-8');
+        }
+        function downloadAllContacts() {
+            const bills = (JSON.parse(localStorage.getItem('komalBills')) || []).slice().sort((a, b) => a.id - b.id);
+            const map = new Map();
+            bills.forEach(b => { const p = normPhone(b.mobileNo); if (p.length >= 11) map.set(p, b); });
+            if (!map.size) { alert('કોઈ મોબાઈલ નંબર નથી.'); return; }
+            const cards = [...map.values()].map(b => generateVCardString(b.farmerName, b.businessName, b.mobileNo, b.village));
+            saveFile('Komal_All_Contacts.vcf', cards.join('\r\n') + '\r\n', 'text/vcard;charset=utf-8');
+            setTimeout(() => alert(map.size + ' કોન્ટેક્ટની vCard ફાઇલ ડાઉનલોડ થઈ. ફાઇલ ખોલી "Contacts" માં ઇમ્પોર્ટ કરો.'), 400);
+        }
+
         function closeShareModal() { document.getElementById('shareOptionsModal').classList.add('hidden'); }
         function resetFormAndCloseModal() {
             closeShareModal();
+            exitEditMode();
             document.getElementById('billingForm').reset();
             packingData = [];
             currentBillData = null;
@@ -965,7 +1137,7 @@ ${bhardoText}---------------------------
                 let displayName = b.businessName ? `${b.farmerName} <br><span class='text-[10px] text-green-600'>${b.businessName}</span>` : b.farmerName;
 
                 tbody += `
-                    <tr class="border-b hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50">
                         <td class="p-2 text-gray-500 whitespace-nowrap">${b.fDate.substring(0,5)}</td>
                         <td class="p-2 font-bold">${displayName}</td>
                         <td class="p-2 font-medium whitespace-nowrap">${b.totalWeight} kg</td>
@@ -977,6 +1149,15 @@ ${bhardoText}---------------------------
                             <button onclick="downloadVCardFromReport(${originalIndex})" class="text-indigo-500 bg-indigo-50 w-10 h-10 rounded-full"><i class="fas fa-user-plus"></i></button>
                         </td>
                     </tr>
+                    <tr class="border-b"><td colspan="5" class="px-2 pb-2.5">
+                        <div class="flex gap-1.5 flex-wrap">
+                            <button onclick="openBillFromReport(${b.id})" class="bg-green-50 text-green-700 border border-green-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-print mr-1"></i>બિલ / પ્રિન્ટ</button>
+                            <button onclick="editBill(${b.id})" class="bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-pen mr-1"></i>સુધારો</button>
+                            <button onclick="callBill(${b.id})" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-phone mr-1"></i>કોલ</button>
+                            <button onclick="waBill(${b.id})" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</button>
+                            <button onclick="smsBill(${b.id})" class="bg-gray-50 text-gray-700 border border-gray-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-comment-sms mr-1"></i>SMS</button>
+                        </div>
+                    </td></tr>
                 `;
             });
 
@@ -1015,6 +1196,8 @@ ${bhardoText}---------------------------
         }
 
         window.onload = () => {
+            document.body.appendChild(document.getElementById('billTemplate'));
+            document.body.appendChild(document.getElementById('shareOptionsModal'));
             let today = todayStr();
             document.getElementById('startDate').value = today;
             document.getElementById('endDate').value = today;
