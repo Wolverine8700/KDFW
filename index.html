@@ -66,6 +66,18 @@
     </style>
 </head>
 <body class="text-gray-800" style="padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));">
+    <div id="pinLock" style="position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#14532d,#1f7a4a)">
+        <div style="background:#fff;border-radius:24px;padding:28px 22px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+            <div class="logo-wrap" style="margin:0 auto 14px;width:5.5rem;height:5.5rem"><img src="icon-512.png" alt=""></div>
+            <h2 style="font-size:1.3rem;font-weight:700;color:#14532d">કોમલ ડેરી ફાર્મ</h2>
+            <p style="font-size:13px;color:#6b7280;margin:4px 0 16px">PIN નાખીને ઍપ ખોલો</p>
+            <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••••" class="input-field" style="width:100%;text-align:center;font-size:24px;letter-spacing:8px;padding:12px;font-weight:700" onkeydown="if(event.key==='Enter')unlockApp()">
+            <p id="pinMsg" style="color:#dc2626;font-size:13px;min-height:20px;margin:8px 0"></p>
+            <button type="button" id="pinBtn" onclick="unlockApp()" style="width:100%;background:linear-gradient(135deg,#14532d,#1f7a4a);color:#fff;font-weight:700;font-size:18px;padding:14px;border-radius:14px">ખોલો</button>
+        </div>
+    </div>
+    <script>if (localStorage.getItem('komalPin')) document.getElementById('pinLock').style.display = 'none';</script>
+
 
     <header class="brand-header text-white p-3 sm:p-4 relative z-50">
         <div class="container mx-auto flex justify-between items-center max-w-4xl">
@@ -425,16 +437,104 @@
                     <label class="block text-xs font-bold mb-1 text-gray-600">ભરડો મજૂરી દર (₹ પ્રતિ kg)</label>
                     <input type="number" id="settingRateBhardo" step="0.25" class="w-full p-2.5 border rounded-lg font-bold text-lg" value="2.00">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1 text-gray-600"><i class="fas fa-cloud-upload-alt mr-1 text-green-600"></i>Google Sheet લિંક (ઑટો સેવ)</label>
+                    <input type="url" id="settingSheetUrl" class="w-full p-2.5 border rounded-lg text-base" placeholder="https://script.google.com/macros/s/.../exec">
+                </div>
+                <button type="button" onclick="lockApp('')" class="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl text-sm"><i class="fas fa-lock mr-1"></i>ઍપ લૉક કરો (લૉગ આઉટ)</button>
+                <button type="button" onclick="copySetupLink()" class="w-full border-2 border-green-600 text-green-700 font-bold py-2.5 rounded-xl text-sm"><i class="fas fa-share-alt mr-1"></i>સ્ટાફ માટે સેટઅપ લિંક કૉપી કરો</button>
                 <button type="button" onclick="saveSettings()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-md">સેવ કરો</button>
             </div>
         </div>
     </div>
 
     <script>
+        function getPin() { return localStorage.getItem('komalPin') || ''; }
+        function authUrl(url) { return url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(getPin()); }
+        function lockApp(msg) {
+            localStorage.removeItem('komalPin');
+            document.getElementById('pinLock').style.display = 'flex';
+            document.getElementById('pinMsg').innerText = msg || '';
+            document.getElementById('pinInput').value = '';
+        }
+        async function unlockApp() {
+            const pin = document.getElementById('pinInput').value.trim();
+            const msg = document.getElementById('pinMsg'), btn = document.getElementById('pinBtn');
+            if (!pin) { msg.innerText = 'PIN નાખો.'; return; }
+            btn.disabled = true; msg.innerText = 'ચકાસી રહ્યા છીએ...';
+            try {
+                const url = getSheetUrl();
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(pin) + '&t=' + Date.now());
+                const data = await res.json();
+                if (data && data.error === 'pin') msg.innerText = 'ખોટો PIN. ફરી પ્રયત્ન કરો.';
+                else if (Array.isArray(data)) {
+                    localStorage.setItem('komalPin', pin);
+                    document.getElementById('pinLock').style.display = 'none';
+                    msg.innerText = ''; pullFromSheet(); flushQueue();
+                } else msg.innerText = 'જવાબ સમજાયો નહીં. Google Script અપડેટ કરી છે?';
+            } catch (e) { msg.innerText = 'ઇન્ટરનેટ ચાલુ કરીને ફરી પ્રયત્ન કરો.'; }
+            btn.disabled = false;
+        }
+        const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0K9anKRYOccdI9EBm7NtGYXRAnD3nkPHRyrzIEvfac05hiMLGe_vTBd2veveV2gsgMg/exec';
+        function getSheetUrl() { return localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL; }
+        function applySetupLink() {
+            const u = new URLSearchParams(location.search).get('sheet');
+            if (u && u.startsWith('https://script.google.com/')) {
+                localStorage.setItem('sheetUrl', u);
+                history.replaceState(null, '', location.pathname);
+                initRatesDisplay();
+            }
+        }
+        function copySetupLink() {
+            const u = document.getElementById('settingSheetUrl').value.trim() || getSheetUrl();
+            if (!u) { alert('પહેલા Sheet લિંક નાખો.'); return; }
+            const link = location.origin + location.pathname + '?sheet=' + encodeURIComponent(u);
+            if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => alert('લિંક કૉપી થઈ ગઈ! સ્ટાફને WhatsApp પર મોકલો.'));
+            else prompt('આ લિંક કૉપી કરો:', link);
+        }
+        let pulling = false;
+        async function pullFromSheet() {
+            const url = getSheetUrl();
+            if (!url || pulling || !getPin()) return;
+            pulling = true;
+            try {
+                const res = await fetch(authUrl(url) + '&t=' + Date.now());
+                const remote = await res.json();
+                if (remote && remote.error === 'pin') { lockApp('PIN બદલાયો છે. ફરી નાખો.'); return; }
+                if (!Array.isArray(remote)) return;
+                const local = JSON.parse(localStorage.getItem('komalBills')) || [];
+                const have = new Set(local.map(b => b.id));
+                const remoteIds = new Set(remote.map(b => b && b.id));
+                let added = 0;
+                remote.forEach(b => { if (b && b.id && !have.has(b.id)) { local.push(b); added++; } });
+                if (added) { local.sort((a, b) => a.id - b.id); localStorage.setItem('komalBills', JSON.stringify(local)); }
+                local.filter(b => !remoteIds.has(b.id)).forEach(b => sheetPost(b).catch(() => {}));
+                updateHero();
+                if (added && !document.getElementById('reportsSection').classList.contains('hidden')) generateReport();
+            } catch (e) { /* offline or not set up */ } finally { pulling = false; }
+        }
+        function sheetPost(bill) {
+            const url = getSheetUrl();
+            if (!url || !getPin()) return Promise.resolve();
+            return fetch(authUrl(url), { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(bill) });
+        }
+        function syncToSheet(bill) {
+            if (!getSheetUrl()) return;
+            sheetPost(bill).catch(() => {
+                const q = JSON.parse(localStorage.getItem('komalQueue')) || [];
+                q.push(bill); localStorage.setItem('komalQueue', JSON.stringify(q));
+            });
+        }
+        async function flushQueue() {
+            if (!getSheetUrl()) return;
+            const q = JSON.parse(localStorage.getItem('komalQueue')) || [], left = [];
+            for (const b of q) { try { await sheetPost(b); } catch (e) { left.push(b); } }
+            localStorage.setItem('komalQueue', JSON.stringify(left));
+        }
         function updateHero() {
             const t = todayStr(); const all = JSON.parse(localStorage.getItem('komalBills')) || [];
             const d = all.filter(b => b.date === t);
-            document.getElementById('heroDate').innerText = new Date().toLocaleDateString('gu-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('heroDate').innerText = new Date().toLocaleDateString('gu-IN', { weekday: 'long', day: 'numeric', month: 'long' }) + (getSheetUrl() ? '  •  ☁️ ક્લાઉડ ચાલુ' : '  •  ☁️ બંધ');
             document.getElementById('heroCount').innerText = d.length;
             document.getElementById('heroCash').innerText = '₹' + Math.round(d.reduce((s, b) => s + b.received, 0)).toLocaleString('en-IN');
             document.getElementById('heroShort').innerText = d.reduce((s, b) => s + b.shortage, 0).toFixed(1);
@@ -461,6 +561,7 @@
             document.getElementById('lblRateGrading').innerText = rates.grading;
             document.getElementById('lblRateBhardo').innerText = rates.bhardo;
             document.getElementById('lblRateBhardo2').innerText = rates.bhardo;
+            document.getElementById('settingSheetUrl').value = getSheetUrl() || '';
             document.getElementById('settingRateGrading').value = rates.grading;
             document.getElementById('settingRateBhardo').value = rates.bhardo;
         }
@@ -476,6 +577,9 @@
                 rates.bhardo = b;
                 localStorage.setItem('rateGrading', g);
                 localStorage.setItem('rateBhardo', b);
+                localStorage.setItem('sheetUrl', document.getElementById('settingSheetUrl').value.trim());
+                flushQueue();
+                pullFromSheet();
                 initRatesDisplay();
                 calculateTotals();
                 closeSettings();
@@ -497,7 +601,7 @@
             } else {
                 document.getElementById('reportsSection').classList.remove('hidden');
                 document.getElementById('tab-reports').classList.add('tab-active');
-                loadTodayReport(); 
+                loadTodayReport(); pullFromSheet(); 
             }
             window.scrollTo(0,0);
         }
@@ -665,6 +769,7 @@
             bills.push(currentBillData);
             localStorage.setItem('komalBills', JSON.stringify(bills));
             updateHero();
+            syncToSheet(currentBillData);
 
             let displayName = businessName ? `${farmerName} (${businessName})` : farmerName;
             document.getElementById('modalFarmerName').innerText = displayName;
@@ -912,7 +1017,9 @@ ${bhardoText}---------------------------
             document.getElementById('startDate').value = today;
             document.getElementById('endDate').value = today;
             initRatesDisplay();
-            updateHero(); initSegs();
+            applySetupLink(); updateHero(); initSegs(); flushQueue(); pullFromSheet();
+            window.addEventListener('online', () => { flushQueue(); pullFromSheet(); });
+            setInterval(pullFromSheet, 60000);
             ['bagWeight','bagQty'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addBag(); } }));
             document.getElementById('billingForm').addEventListener('submit', e => e.preventDefault());
         }
