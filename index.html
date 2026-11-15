@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#14532d">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <title>કોમલ ડેરી ફાર્મ - ઘઉં ગ્રેડિંગ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Hind Vadodara', system-ui, -apple-system, 'Noto Sans Gujarati', 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; padding-left: env(safe-area-inset-left,0px); padding-right: env(safe-area-inset-right,0px); }
+        button { touch-action: manipulation; }
+        input, select { font-size: 16px; }
+        @media (max-width: 639px) {
+            #saveBar { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)); }
+            #shareOptionsModal .modal-content { padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); }
+        }
+        body { background-color: #f6f4ec; }
+        .brand-header { background: linear-gradient(135deg, #14532d, #1f7a4a 60%, #2d8f5a); border-bottom: 3px solid #d9bd7a; box-shadow: 0 6px 18px rgba(20,83,45,0.25); }
+        .logo-wrap { width: 4.25rem; height: 4.25rem; border-radius: 9999px; overflow: hidden; background: #fff; border: 3px solid #d9bd7a; box-shadow: 0 2px 10px rgba(0,0,0,0.25); flex-shrink: 0; }
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); }
+        @media (min-width: 640px) { .logo-wrap { width: 5rem; height: 5rem; } }
+        .glass-card { border-radius: 20px; box-shadow: 0 8px 24px rgba(20,83,45,0.08); border: 1px solid rgba(217,189,122,0.35); }
+        .tab-active::after { background: linear-gradient(90deg, #16a34a, #d9bd7a); }
+        #saveBar button { background: linear-gradient(135deg, #14532d, #1f7a4a); }
+        .input-field { border-radius: 12px; }
+        .input-field:focus { border-color: #1f7a4a; box-shadow: 0 0 0 4px rgba(217,189,122,0.35); }
+        .sec-title { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; font-weight: 700; color: #14532d; margin-bottom: 1rem; }
+        .sec-badge { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #14532d, #1f7a4a); color: #f3e2b3; display: grid; place-items: center; font-size: .95rem; border: 2px solid #d9bd7a; flex-shrink: 0; }
+        .sec-ico { margin-left: auto; color: #d9bd7a; font-size: 1.1rem; }
+        .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; background: #eef2ee; padding: 4px; border-radius: 14px; }
+        .seg button { padding: 10px 6px; min-height: 46px; border-radius: 11px; font-weight: 700; color: #4b5563; font-size: 15px; transition: all .15s; }
+        .seg button.on { background: #fff; color: #14532d; box-shadow: 0 2px 8px rgba(20,83,45,.18); outline: 2px solid #d9bd7a; }
+        .bar-total { display: flex; flex-direction: column; line-height: 1.1; min-width: 92px; }
+        .bar-total span { font-size: 11px; color: #6b7280; font-weight: 600; }
+        .bar-total b { font-size: 1.4rem; color: #14532d; font-weight: 800; }
+        .hero { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 18px; border-radius: 20px; color: #fff; background: radial-gradient(circle at 100% 0, rgba(217,189,122,.35), transparent 55%), linear-gradient(135deg, #14532d, #1f7a4a); box-shadow: 0 8px 24px rgba(20,83,45,.25); }
+        .hero-sub { font-size: 12px; color: #e8d3a0; font-weight: 600; }
+        .hero-title { font-size: 1.3rem; font-weight: 700; }
+        .hero-stats { display: flex; gap: 8px; }
+        .hero-stats div { background: rgba(255,255,255,.12); border: 1px solid rgba(217,189,122,.45); border-radius: 14px; padding: 6px 12px; text-align: center; min-width: 70px; }
+        .hero-stats b { display: block; font-size: 1.1rem; font-weight: 700; }
+        .hero-stats span { font-size: 10px; color: #e8d3a0; }
+        @media (max-width: 639px) { .hero-stats { width: 100%; } .hero-stats div { flex: 1; } }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass-card { background: #ffffff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); }
+        .input-field { transition: all 0.2s ease; border: 1.5px solid #e2e8f0; font-size: 16px; }
+        .input-field:focus { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); outline: none; border-color: #22c55e; }
+        .tab-btn { position: relative; transition: all 0.3s ease; }
+        .tab-active { color: #16a34a; font-weight: 800; }
+        .tab-active::after {
+            content: ''; position: absolute; bottom: 0; left: 10%; width: 80%; height: 4px;
+            background: #16a34a; border-radius: 4px 4px 0 0;
+        }
+        .bag-item { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .modal-content { max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
+    </style>
+</head>
+<body class="text-gray-800" style="padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));">
+
+    <header class="brand-header text-white p-3 sm:p-4 relative z-50">
+        <div class="container mx-auto flex justify-between items-center max-w-4xl">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="logo-wrap"><img src="icon-512.png" alt="કોમલ ડેરી ફાર્મ" onerror="this.style.display='none'"></div>
+                <div class="flex flex-col justify-center">
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-wide drop-shadow-sm leading-tight">કોમલ ડેરી ફાર્મ</h1>
+                    <p class="text-[11px] sm:text-xs font-semibold tracking-wider" style="color:#e8d3a0">ઘઉં ગ્રેડિંગ સિસ્ટમ</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openSettings()" class="bg-white/20 active:bg-white/30 text-white w-11 h-11 flex items-center justify-center rounded-lg text-lg backdrop-blur-sm" title="મજૂરી ભાવ સેટિંગ" aria-label="સેટિંગ">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <div class="text-right text-[10px] sm:text-xs hidden sm:block bg-black/10 p-2 rounded-lg backdrop-blur-sm border border-white/20">
+                    <p class="font-semibold"><i class="fas fa-phone-alt mr-1"></i> રમેશભાઈ: ૭૮૭૪૫૨૭૯૦૫</p>
+                    <p class="font-semibold"><i class="fas fa-phone-alt mr-1"></i> રાજ: ૮૮૬૬૨૧૪૦૧૮</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="sm:hidden bg-green-800 text-white text-xs font-semibold flex justify-around py-2">
+        <a href="tel:7874527905" class="px-3 py-1"><i class="fas fa-phone-alt mr-1"></i>રમેશભાઈ</a>
+        <a href="tel:8866214018" class="px-3 py-1"><i class="fas fa-phone-alt mr-1"></i>રાજ</a>
+    </div>
+
+    <div class="bg-white shadow-sm mb-5 sticky top-0 z-40">
+        <div class="container mx-auto flex justify-around max-w-4xl">
+            <button onclick="switchTab('newBill')" id="tab-newBill" class="tab-btn p-3 sm:p-4 w-full tab-active text-base sm:text-lg"><i class="fas fa-file-invoice mr-2"></i>નવું બિલ</button>
+            <button onclick="switchTab('reports')" id="tab-reports" class="tab-btn p-3 sm:p-4 w-full text-gray-500 hover:text-green-600 font-semibold text-base sm:text-lg"><i class="fas fa-chart-pie mr-2"></i>રિપોર્ટ</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-3 sm:px-4 max-w-4xl">
+
+        <div id="newBillSection" class="fade-in">
+            <div class="hero mb-5">
+                <div><p class="hero-sub" id="heroDate"></p><p class="hero-title">આજનો વેપાર</p></div>
+                <div class="hero-stats"><div><b id="heroCount">0</b><span>બિલ</span></div><div><b id="heroCash">₹0</b><span>જમા</span></div><div><b id="heroShort">0</b><span>ઘટ્ટ kg</span></div></div>
+            </div>
+            <form id="billingForm" class="space-y-5 sm:space-y-7">
+                
+                <div class="glass-card p-4 sm:p-6 border-l-4 border-green-500">
+                    <h2 class="sec-title"><span class="sec-badge">૧</span><span>ગ્રાહકની વિગત</span><i class="fas fa-user-tie sec-ico"></i></h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">ખેડૂત/ગ્રાહકનું નામ</label>
+                            <input type="text" id="farmerName" required class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="નામ લખો">
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">મોબાઈલ નંબર</label>
+                            <input type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" id="mobileNo" required class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="૧૦ આંકડાનો નંબર">
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">પેઢીનું નામ (જો હોય તો)</label>
+                            <input type="text" id="businessName" class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="પેઢીનું નામ">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">ગામ/શહેર</label>
+                                <input type="text" id="villageName" class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="ગામ">
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">વાહન નંબર</label>
+                                <input type="text" id="vehicleNo" class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-gray-50" placeholder="GJ-XX">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 sm:p-6 border-l-4 border-blue-500">
+                    <h2 class="sec-title"><span class="sec-badge">૨</span><span>પેકિંગ (Add Bags)</span><i class="fas fa-box-open sec-ico"></i></h2>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-blue-50/50 p-3 sm:p-4 rounded-xl border border-blue-100">
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-xs font-bold mb-1 text-gray-600">પ્રકાર</label>
+                            <select id="bagType" class="hidden w-full p-2.5 sm:p-3 rounded-lg input-field bg-white font-bold text-gray-700">
+                                <option value="good">સારા (Good)</option>
+                                <option value="thin">જીણા (Thin)</option>
+                            </select><div class="seg" data-target="bagType"><button type="button" data-v="good">🌾 સારા</button><button type="button" data-v="thin">જીણા</button></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-gray-600">વજન (kg)</label>
+                            <input type="number" inputmode="decimal" enterkeyhint="done" id="bagWeight" class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-white font-bold text-center" placeholder="દા.ત. 30">
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">નંગ</label>
+                            <input type="number" inputmode="numeric" id="bagQty" class="w-full p-2.5 sm:p-3 rounded-lg input-field bg-white font-bold text-center" value="1" min="1">
+                        </div>
+                        <div class="col-span-2 sm:col-span-1 flex items-end">
+                            <button type="button" onclick="addBag()" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-2.5 sm:p-3 rounded-lg font-bold shadow-md transition-all active:scale-95 flex justify-center items-center h-[46px] sm:h-[50px]">
+                                <i class="fas fa-plus mr-1"></i> ઉમેરો
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="packingListContainer" class="mt-4 hidden">
+                        <h3 class="text-xs sm:text-sm font-bold text-gray-500 mb-2">ઉમેરેલી બેગ્સ:</h3>
+                        <div class="max-h-48 overflow-y-auto rounded-xl space-y-2 pr-1" id="packingListUI"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 sm:p-6 border-l-4 border-yellow-500">
+                    <h2 class="sec-title"><span class="sec-badge">૩</span><span>ગ્રેડિંગ, ઘટ્ટ & ભરડો</span><i class="fas fa-calculator sec-ico"></i></h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 items-center mb-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-800">આવેલ કુલ જથ્થો (કિલો) <span class="text-red-500">*</span></label>
+                            <input type="number" inputmode="decimal" id="totalReceived" oninput="calculateTotals()" required class="w-full p-3 sm:p-4 rounded-xl border-2 border-yellow-300 bg-yellow-50 font-extrabold text-2xl text-center text-yellow-900 focus:border-yellow-500 focus:ring-0 transition-all" placeholder="0">
+                        </div>
+                        
+                        <div class="bg-gray-800 p-4 sm:p-5 rounded-xl shadow-lg text-white">
+                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-600">
+                                <span class="text-xs sm:text-sm text-gray-300 font-semibold">સારા ઘઉં:</span> 
+                                <span id="lblGoodWheat" class="text-base sm:text-lg font-bold text-green-400">0 kg</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-600">
+                                <span class="text-xs sm:text-sm text-gray-300 font-semibold">જીણા ઘઉં:</span> 
+                                <span id="lblThinWheat" class="text-base sm:text-lg font-bold text-blue-400">0 kg</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm font-bold text-gray-200">ટોટલ ઘટ્ટ:</span> 
+                                <span id="lblShortage" class="text-xl sm:text-2xl font-extrabold text-red-500 drop-shadow-md">0 kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-3 sm:p-4 rounded-xl border border-yellow-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-yellow-900 text-sm sm:text-base">
+                            <input type="checkbox" id="hasBhardo" onchange="toggleBhardo()" class="w-6 h-6 accent-yellow-600 rounded flex-shrink-0">
+                            <span>🌾 ભરડો કરાવેલ છે? <span class="text-xs font-semibold">(મજૂરી ₹<span id="lblRateBhardo2">2.00</span>/kg)</span></span>
+                        </label>
+                        <div id="bhardoInputContainer" class="hidden w-full sm:w-48">
+                            <input type="number" inputmode="decimal" id="bhardoWeight" oninput="calculateTotals()" class="w-full p-2.5 border-2 border-yellow-400 rounded-lg text-center font-bold bg-white" placeholder="ભરડાનો જથ્થો (kg)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 sm:p-6 border-l-4 border-purple-500">
+                    <h2 class="sec-title"><span class="sec-badge">૪</span><span>હિસાબ (ઓટોમેટિક ગણતરી)</span><i class="fas fa-rupee-sign sec-ico"></i></h2>
+                    
+                    <div class="bg-purple-50 p-3 rounded-lg mb-4 text-xs sm:text-sm text-purple-900 font-medium flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span>મજૂરી દર: ગ્રેડિંગ = ₹<span id="lblRateGrading">1.25</span>/kg | ભરડો = ₹<span id="lblRateBhardo">2.00</span>/kg</span>
+                        <span id="calculationBreakdown" class="font-bold"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">કુલ બિલ રકમ (₹) [ઓટો]</label>
+                            <input type="number" id="totalBillAmount" required class="w-full p-3 rounded-lg input-field bg-gray-100 text-xl font-extrabold text-gray-900" placeholder="0" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">જમા લીધેલ રકમ (₹)</label>
+                            <input type="number" id="receivedAmount" required class="w-full p-3 rounded-lg input-field bg-green-50 text-xl font-extrabold text-green-700 border-green-200" placeholder="0">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs sm:text-sm font-bold mb-1 text-gray-600">પેમેન્ટ મોડ</label>
+                            <select id="paymentMode" class="hidden w-full p-3 rounded-lg input-field bg-white font-bold text-purple-800 border-purple-200 text-base">
+                                <option value="રોકડા">રોકડા (Cash)</option>
+                                <option value="ઓનલાઈન">ઓનલાઈન (Online)</option>
+                                <option value="બાકી">બાકી / ઉધાર (Credit)</option>
+                            </select><div class="seg" data-target="paymentMode"><button type="button" data-v="રોકડા">💵 રોકડા</button><button type="button" data-v="ઓનલાઈન">📱 ઓનલાઈન</button><button type="button" data-v="બાકી">⏳ બાકી</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="saveBar" class="fixed bottom-0 left-0 right-0 p-3 sm:static sm:p-0 bg-white sm:bg-transparent border-t sm:border-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:shadow-none z-40">
+                    <div class="container mx-auto max-w-4xl px-1 sm:px-0 flex items-center gap-3"><div class="bar-total"><span>કુલ બિલ</span><b>₹<span id="barTotal">0</span></b></div><button type="button" onclick="saveAndShowOptions()" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 active:from-green-700 active:to-emerald-700 text-white font-extrabold py-3.5 sm:py-4 px-4 rounded-xl shadow-lg transition-transform active:scale-[0.98] text-lg sm:text-xl flex justify-center items-center">
+                            <i class="fas fa-check-circle mr-2"></i> બિલ સેવ કરો
+                        </button>
+                    </div>
+                </div>
+
+                <div id="billTemplate" style="display: none; padding: 25px; background: white; width: 500px; border: 2px solid #16a34a; font-family: Arial, sans-serif; position: absolute; left: -9999px;">
+                    <div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 15px; margin-bottom: 20px;">
+                        <img src="icon-512.png" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #d9bd7a; vertical-align: middle; margin-right: 10px;">
+                        <span style="color: #16a34a; margin: 0; font-size: 26px; font-weight: bold; vertical-align: middle;">કોમલ ડેરી ફાર્મ</span>
+                        <p style="margin: 5px 0; font-size: 14px; color: #555;">ઘઉં ગ્રેડિંગ અને પેકિંગ સિસ્ટમ</p>
+                        <p style="margin: 5px 0; font-size: 14px; font-weight: bold;">રમેશભાઈ: ૭૮૭૪૫૨૭૯૦૫ | રાજ: ૮૮૬૬૨૧૪૦૧૮</p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 15px;">
+                        <div>
+                            <p><strong>ગ્રાહક:</strong> <span id="btName"></span></p>
+                            <p id="btBusinessRow" style="display:none; color:#16a34a;"><strong>પેઢી:</strong> <span id="btBusiness"></span></p>
+                            <p><strong>ગામ:</strong> <span id="btVillage"></span></p>
+                            <p><strong>વાહન:</strong> <span id="btVehicle"></span></p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p><strong>તારીખ:</strong> <span id="btDate"></span></p>
+                            <p><strong>મોબાઈલ:</strong> <span id="btMobile"></span></p>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 15px;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6;">
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">વિગત</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">જથ્થો (કિલો)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px;">આવેલ કુલ જથ્થો</td>
+                                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;" id="btTotalW"></td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px; color: #16a34a;">સારા ઘઉં</td>
+                                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #16a34a; font-weight: bold;" id="btGoodW"></td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px; color: #2563eb;">જીણા ઘઉં</td>
+                                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #2563eb; font-weight: bold;" id="btThinW"></td>
+                            </tr>
+                            <tr id="btBhardoRow" style="display:none;">
+                                <td style="border: 1px solid #ddd; padding: 10px; color: #d97706;">ભરડો કરાવેલ જથ્થો</td>
+                                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #d97706; font-weight: bold;" id="btBhardoW"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>કુલ બિલ રકમ:</span>
+                            <span style="font-weight: bold;">₹ <span id="btTotalB"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>જમા રકમ:</span>
+                            <span style="font-weight: bold; color: #16a34a;">₹ <span id="btRecB"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>પેમેન્ટ મોડ:</span>
+                            <span style="font-weight: bold;" id="btMode"></span>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; font-size: 13px; color: #666; font-style: italic;">
+                        "અમારે ત્યાં પધારવા બદલ આભાર"
+                    </div>
+                </div>
+
+                <div id="shareOptionsModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex justify-center items-end sm:items-center fade-in backdrop-blur-sm">
+                    <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:w-[90%] sm:max-w-sm shadow-2xl relative modal-content pb-8 sm:pb-6">
+                        <button type="button" onclick="closeShareModal()" class="absolute top-2 right-2 w-11 h-11 flex items-center justify-center text-gray-400 active:text-red-500 text-3xl font-light" aria-label="બંધ કરો">&times;</button>
+                        
+                        <div class="text-center mb-4 mt-2">
+                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mb-2">
+                                <i class="fas fa-check text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800">બિલ સેવ થઈ ગયું!</h3>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-3 text-center mb-5 border border-gray-100">
+                            <p class="text-sm font-semibold text-gray-600 mb-1"><span id="modalFarmerName" class="text-gray-900 font-bold"></span></p>
+                            <p class="text-xs font-semibold text-gray-500">ઘઉં: <span id="modalTotalWheat" class="text-gray-800 font-bold"></span> kg | બિલ: ₹<span id="modalBill" class="text-gray-800 font-bold"></span></p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button type="button" onclick="shareWhatsAppText()" class="w-full bg-[#25D366] active:bg-[#1fae54] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-transform active:scale-[0.98] shadow-sm">
+                                <i class="fab fa-whatsapp text-xl mr-2"></i> Text Message મોકલો
+                            </button>
+                            
+                            <button type="button" onclick="shareWhatsAppImage()" class="w-full bg-[#1da1f2] active:bg-[#1888ce] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-transform active:scale-[0.98] shadow-sm" id="imgShareBtn">
+                                <i class="fas fa-image text-xl mr-2"></i> બિલનો ફોટો મોકલો
+                            </button>
+
+                            <button type="button" onclick="downloadVCard()" class="w-full bg-indigo-500 active:bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center transition-transform active:scale-[0.98] shadow-sm">
+                                <i class="fas fa-address-card text-xl mr-2"></i> vCard ડાઉનલોડ કરો
+                            </button>
+                        </div>
+                        
+                        <div id="billImageContainer" class="hidden mt-4">
+                            <p class="text-xs text-center text-gray-400 mb-2">બિલનો પ્રિવ્યૂ</p>
+                        </div>
+                        
+                        <div class="mt-5 pt-3 text-center">
+                            <button type="button" onclick="resetFormAndCloseModal()" class="text-gray-500 hover:text-gray-800 font-bold text-sm">
+                                નવું બિલ બનાવો
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div id="reportsSection" class="hidden fade-in space-y-5 sm:space-y-6 pb-20">
+            <div class="glass-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center gap-3 border-l-4 border-gray-700">
+                <div class="flex gap-2 items-end w-full sm:w-auto">
+                    <div class="flex-1">
+                        <label class="block text-[10px] sm:text-xs font-bold mb-1 text-gray-500">શરૂઆત</label>
+                        <input type="date" id="startDate" class="w-full min-w-0 p-2.5 border rounded-lg text-base bg-gray-50">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[10px] sm:text-xs font-bold mb-1 text-gray-500">અંતિમ</label>
+                        <input type="date" id="endDate" class="w-full min-w-0 p-2.5 border rounded-lg text-base bg-gray-50">
+                    </div>
+                    <button onclick="generateReport()" class="bg-gray-800 text-white px-4 py-2 rounded-lg active:bg-gray-900 font-bold transition-transform active:scale-95 h-[46px] w-12 flex-shrink-0"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <button onclick="printShortageStatement()" class="w-full sm:w-auto bg-red-600 active:bg-red-700 text-white px-4 py-3 rounded-lg font-bold shadow-md transition-transform active:scale-95 flex items-center justify-center text-sm">
+                    <i class="fas fa-print mr-2"></i> ઘટ્ટ રિપોર્ટ કાઢો
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100 text-center relative overflow-hidden">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-bold">રોકડા જમા</p>
+                    <h3 class="text-2xl font-extrabold text-green-600 mt-1" id="statCash">₹0</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 text-center relative overflow-hidden">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-bold">ઓનલાઈન જમા</p>
+                    <h3 class="text-2xl font-extrabold text-blue-600 mt-1" id="statOnline">₹0</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-purple-100 text-center relative overflow-hidden">
+                    <p class="text-[10px] sm:text-xs text-gray-500 font-bold">બાકી પેમેન્ટ</p>
+                    <h3 class="text-2xl font-extrabold text-purple-600 mt-1" id="statPending">₹0</h3>
+                </div>
+                <div class="bg-gradient-to-br from-red-500 to-red-600 p-4 rounded-xl shadow-sm text-center text-white relative overflow-hidden">
+                    <p class="text-[10px] sm:text-xs font-bold opacity-90">કુલ ઘટ્ટ</p>
+                    <h3 class="text-2xl font-extrabold mt-1" id="statShortage">0 kg</h3>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-xs sm:text-sm border-b">
+                                <th class="p-3 font-bold">તારીખ</th>
+                                <th class="p-3 font-bold">નામ / પેઢી</th>
+                                <th class="p-3 font-bold">જથ્થો</th>
+                                <th class="p-3 font-bold">પેમેન્ટ</th>
+                                <th class="p-3 font-bold text-center">vCard</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="text-xs sm:text-sm">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/60 z-[70] flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl relative max-h-[90dvh] overflow-y-auto">
+            <button type="button" onclick="closeSettings()" class="absolute top-2 right-2 w-11 h-11 flex items-center justify-center text-gray-400 active:text-red-500 text-2xl font-bold" aria-label="બંધ કરો">&times;</button>
+            <h3 class="text-lg font-bold text-gray-800 mb-4"><i class="fas fa-cog mr-2 text-green-600"></i>મજૂરી દર સેટિંગ</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1 text-gray-600">ગ્રેડિંગ મજૂરી દર (₹ પ્રતિ kg)</label>
+                    <input type="number" id="settingRateGrading" step="0.25" class="w-full p-2.5 border rounded-lg font-bold text-lg" value="1.25">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1 text-gray-600">ભરડો મજૂરી દર (₹ પ્રતિ kg)</label>
+                    <input type="number" id="settingRateBhardo" step="0.25" class="w-full p-2.5 border rounded-lg font-bold text-lg" value="2.00">
+                </div>
+                <button type="button" onclick="saveSettings()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-md">સેવ કરો</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateHero() {
+            const t = todayStr(); const all = JSON.parse(localStorage.getItem('komalBills')) || [];
+            const d = all.filter(b => b.date === t);
+            document.getElementById('heroDate').innerText = new Date().toLocaleDateString('gu-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('heroCount').innerText = d.length;
+            document.getElementById('heroCash').innerText = '₹' + Math.round(d.reduce((s, b) => s + b.received, 0)).toLocaleString('en-IN');
+            document.getElementById('heroShort').innerText = d.reduce((s, b) => s + b.shortage, 0).toFixed(1);
+        }
+        function syncSegs() {
+            document.querySelectorAll('.seg').forEach(seg => { const v = document.getElementById(seg.dataset.target).value; seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); });
+        }
+        function initSegs() {
+            document.querySelectorAll('.seg').forEach(seg => { const sel = document.getElementById(seg.dataset.target); seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { sel.value = b.dataset.v; syncSegs(); })); });
+            syncSegs();
+            document.getElementById('billingForm').addEventListener('reset', () => setTimeout(syncSegs, 0));
+        }
+        function todayStr() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+        let packingData = [];
+        let currentBillData = null; 
+        let generatedBillDataURL = null; 
+        
+        let rates = {
+            grading: parseFloat(localStorage.getItem('rateGrading')) || 1.25,
+            bhardo: parseFloat(localStorage.getItem('rateBhardo')) || 2.00
+        };
+
+        function initRatesDisplay() {
+            document.getElementById('lblRateGrading').innerText = rates.grading;
+            document.getElementById('lblRateBhardo').innerText = rates.bhardo;
+            document.getElementById('lblRateBhardo2').innerText = rates.bhardo;
+            document.getElementById('settingRateGrading').value = rates.grading;
+            document.getElementById('settingRateBhardo').value = rates.bhardo;
+        }
+
+        function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
+        function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+        
+        function saveSettings() {
+            let g = parseFloat(document.getElementById('settingRateGrading').value);
+            let b = parseFloat(document.getElementById('settingRateBhardo').value);
+            if(!isNaN(g) && !isNaN(b)) {
+                rates.grading = g;
+                rates.bhardo = b;
+                localStorage.setItem('rateGrading', g);
+                localStorage.setItem('rateBhardo', b);
+                initRatesDisplay();
+                calculateTotals();
+                closeSettings();
+                alert("ભાવ સફળતાપૂર્વક અપડેટ થઈ ગયા!");
+            }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('newBillSection').classList.add('hidden');
+            document.getElementById('reportsSection').classList.add('hidden');
+            document.getElementById('tab-newBill').classList.remove('tab-active', 'text-green-600');
+            document.getElementById('tab-reports').classList.remove('tab-active', 'text-green-600');
+            document.getElementById('tab-newBill').classList.add('text-gray-500');
+            document.getElementById('tab-reports').classList.add('text-gray-500');
+
+            if(tab === 'newBill') {
+                document.getElementById('newBillSection').classList.remove('hidden');
+                document.getElementById('tab-newBill').classList.add('tab-active');
+            } else {
+                document.getElementById('reportsSection').classList.remove('hidden');
+                document.getElementById('tab-reports').classList.add('tab-active');
+                loadTodayReport(); 
+            }
+            window.scrollTo(0,0);
+        }
+
+        function toggleBhardo() {
+            let checked = document.getElementById('hasBhardo').checked;
+            let container = document.getElementById('bhardoInputContainer');
+            if(checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('bhardoWeight').value = '';
+            }
+            calculateTotals();
+        }
+
+        function addBag() {
+            let type = document.getElementById('bagType').value;
+            let weight = parseFloat(document.getElementById('bagWeight').value);
+            let qty = parseInt(document.getElementById('bagQty').value);
+
+            if(!weight || weight <= 0) {
+                alert("વજન દાખલ કરો."); 
+                document.getElementById('bagWeight').focus();
+                return;
+            }
+            if(!qty || qty <= 0) qty = 1;
+
+            let totalWeight = weight * qty;
+            packingData.push({ id: Date.now(), type, weight, qty, totalWeight });
+            
+            document.getElementById('bagWeight').value = '';
+            document.getElementById('bagQty').value = '1';
+            
+            renderPackingList();
+            calculateTotals();
+            document.getElementById('bagWeight').focus();
+        }
+
+        function removeBag(id) {
+            packingData = packingData.filter(b => b.id !== id);
+            renderPackingList();
+            calculateTotals();
+        }
+
+        function renderPackingList() {
+            let container = document.getElementById('packingListContainer');
+            let ui = document.getElementById('packingListUI');
+            
+            if(packingData.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            ui.innerHTML = '';
+
+            [...packingData].reverse().forEach(b => {
+                let typeName = b.type === 'good' ? 'સારા' : 'જીણા';
+                let colorClass = b.type === 'good' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-blue-50 border-blue-200 text-blue-800';
+                
+                ui.innerHTML += `
+                    <div class="flex justify-between items-center p-2.5 rounded-lg border ${colorClass} bag-item shadow-sm text-sm">
+                        <div>
+                            <span class="font-bold mr-1">${typeName}:</span> 
+                            <span>${b.weight} kg <span class="text-xs opacity-75 mx-1">x ${b.qty}</span> = <span class="font-bold">${b.totalWeight.toFixed(2)} kg</span></span>
+                        </div>
+                        <button type="button" onclick="removeBag(${b.id})" class="text-red-500 w-10 h-10 flex items-center justify-center -mr-1 rounded-full active:bg-red-100">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function calculateTotals() {
+            let totalGood = packingData.filter(b => b.type === 'good').reduce((sum, b) => sum + b.totalWeight, 0);
+            let totalThin = packingData.filter(b => b.type === 'thin').reduce((sum, b) => sum + b.totalWeight, 0);
+            
+            document.getElementById('lblGoodWheat').innerText = totalGood.toFixed(2) + ' kg';
+            document.getElementById('lblThinWheat').innerText = totalThin.toFixed(2) + ' kg';
+
+            let received = parseFloat(document.getElementById('totalReceived').value) || 0;
+            let shortage = received - (totalGood + totalThin);
+            
+            let shortLbl = document.getElementById('lblShortage');
+            shortLbl.innerText = (shortage || 0).toFixed(2) + ' kg';
+            
+            if(shortage < 0) {
+                shortLbl.classList.replace('text-red-500', 'text-yellow-400');
+                shortLbl.innerText += ' (વજન વધુ છે)';
+            } else {
+                shortLbl.classList.replace('text-yellow-400', 'text-red-500');
+            }
+
+            let saffWheat = totalGood + totalThin;
+            let gradingAmt = saffWheat * rates.grading;
+
+            let bhardoW = 0;
+            let bhardoAmt = 0;
+            if(document.getElementById('hasBhardo').checked) {
+                bhardoW = parseFloat(document.getElementById('bhardoWeight').value) || 0;
+                bhardoAmt = bhardoW * rates.bhardo;
+            }
+
+            let totalBill = gradingAmt + bhardoAmt;
+            document.getElementById('totalBillAmount').value = totalBill.toFixed(2);
+            document.getElementById('receivedAmount').value = totalBill.toFixed(2);
+            document.getElementById('barTotal').innerText = Math.round(totalBill).toLocaleString('en-IN');
+
+            let breakdown = `ગ્રેડિંગ: ₹${gradingAmt.toFixed(0)}`;
+            if(bhardoW > 0) breakdown += ` + ભરડો: ₹${bhardoAmt.toFixed(0)}`;
+            document.getElementById('calculationBreakdown').innerText = breakdown;
+        }
+
+        async function saveAndShowOptions() {
+            let farmerName = document.getElementById('farmerName').value;
+            let businessName = document.getElementById('businessName').value;
+            let totalReceived = parseFloat(document.getElementById('totalReceived').value);
+            let mobileNo = document.getElementById('mobileNo').value;
+            let village = document.getElementById('villageName').value;
+
+            if(!farmerName || !totalReceived) {
+                alert("નામ અને કુલ જથ્થો દાખલ કરવો જરૂરી છે."); return;
+            }
+
+            let totalGood = packingData.filter(b => b.type === 'good').reduce((sum, b) => sum + b.totalWeight, 0);
+            let totalThin = packingData.filter(b => b.type === 'thin').reduce((sum, b) => sum + b.totalWeight, 0);
+            let shortage = totalReceived - (totalGood + totalThin);
+            
+            let hasBhardo = document.getElementById('hasBhardo').checked;
+            let bhardoWeight = hasBhardo ? (parseFloat(document.getElementById('bhardoWeight').value) || 0) : 0;
+
+            let totalBill = parseFloat(document.getElementById('totalBillAmount').value) || 0;
+            let received = parseFloat(document.getElementById('receivedAmount').value) || 0;
+            let paymentMode = document.getElementById('paymentMode').value;
+            let pendingAmount = totalBill - received;
+            let today = todayStr();
+            
+            let parts = today.split('-');
+            let fDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+            currentBillData = {
+                id: Date.now(),
+                date: today,
+                fDate: fDate,
+                farmerName: farmerName,
+                businessName: businessName,
+                mobileNo: mobileNo,
+                village: village,
+                vehicleNo: document.getElementById('vehicleNo').value,
+                totalWeight: totalReceived,
+                goodWheat: totalGood,
+                thinWheat: totalThin,
+                shortage: shortage,
+                hasBhardo: hasBhardo,
+                bhardoWeight: bhardoWeight,
+                totalBill: totalBill,
+                received: received,
+                pending: pendingAmount > 0 ? pendingAmount : 0,
+                paymentMode: paymentMode,
+                packingDetails: [...packingData]
+            };
+
+            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            bills.push(currentBillData);
+            localStorage.setItem('komalBills', JSON.stringify(bills));
+            updateHero();
+
+            let displayName = businessName ? `${farmerName} (${businessName})` : farmerName;
+            document.getElementById('modalFarmerName').innerText = displayName;
+            document.getElementById('modalTotalWheat').innerText = totalReceived;
+            document.getElementById('modalBill').innerText = totalBill;
+            
+            document.getElementById('btName').innerText = farmerName;
+            if(businessName) {
+                document.getElementById('btBusinessRow').style.display = 'block';
+                document.getElementById('btBusiness').innerText = businessName;
+            } else {
+                document.getElementById('btBusinessRow').style.display = 'none';
+            }
+
+            document.getElementById('btVillage').innerText = village || '-';
+            document.getElementById('btVehicle').innerText = currentBillData.vehicleNo || '-';
+            document.getElementById('btDate').innerText = fDate;
+            document.getElementById('btMobile').innerText = mobileNo || '-';
+            
+            document.getElementById('btTotalW').innerText = totalReceived;
+            document.getElementById('btGoodW').innerText = totalGood;
+            document.getElementById('btThinW').innerText = totalThin;
+            
+            if(hasBhardo && bhardoWeight > 0) {
+                document.getElementById('btBhardoRow').style.display = 'table-row';
+                document.getElementById('btBhardoW').innerText = bhardoWeight;
+            } else {
+                document.getElementById('btBhardoRow').style.display = 'none';
+            }
+
+            document.getElementById('btTotalB').innerText = totalBill;
+            document.getElementById('btRecB').innerText = received;
+            document.getElementById('btMode').innerText = paymentMode;
+
+            let billTemplate = document.getElementById('billTemplate');
+            billTemplate.style.display = 'block'; 
+            
+            try {
+                let btn = document.getElementById('imgShareBtn');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> પ્રોસેસિંગ...';
+                btn.disabled = true;
+                
+                const canvas = await html2canvas(billTemplate, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+                generatedBillDataURL = canvas.toDataURL("image/png");
+                
+                let imgContainer = document.getElementById('billImageContainer');
+                imgContainer.innerHTML = '<p class="text-[10px] text-center text-gray-400 mb-2">પ્રિવ્યૂ</p><img src="'+generatedBillDataURL+'" alt="Bill" class="mx-auto rounded border border-gray-200 shadow-sm max-h-40 object-contain">';
+                imgContainer.classList.remove('hidden');
+                
+                btn.innerHTML = '<i class="fas fa-image text-xl mr-2"></i> બિલનો ફોટો મોકલો';
+                btn.disabled = false;
+            } catch (err) {
+                console.error(err);
+            } finally {
+                billTemplate.style.display = 'none'; 
+            }
+
+            document.getElementById('shareOptionsModal').classList.remove('hidden');
+        }
+
+        function shareWhatsAppText() {
+            if(!currentBillData) return;
+            let b = currentBillData;
+            let displayHeader = b.businessName ? `👤 *ગ્રાહક:* ${b.farmerName} (${b.businessName})` : `👤 *ગ્રાહક:* ${b.farmerName}`;
+            let bhardoText = b.hasBhardo && b.bhardoWeight > 0 ? `🌾 *ભરડો જથ્થો:* ${b.bhardoWeight} કિલો
+` : '';
+
+            let whatsappMsg = `*🌾 કોમલ ડેરી ફાર્મ - બિલ 🌾*
+---------------------------
+${displayHeader}
+📅 *તારીખ:* ${b.fDate}
+---------------------------
+📦 *કુલ આવેલ ઘઉં:* ${b.totalWeight} કિલો
+✅ *સારા ઘઉં:* ${b.goodWheat} કિલો
+🌾 *જીણા ઘઉં:* ${b.thinWheat} કિલો
+${bhardoText}---------------------------
+💰 *કુલ બિલ રકમ:* ₹${b.totalBill}
+💵 *જમા રકમ:* ₹${b.received}
+💳 *પેમેન્ટ:* ${b.paymentMode}
+---------------------------
+🙏 *આભાર!*`;
+            
+            let url = `https://wa.me/${b.mobileNo ? '91'+b.mobileNo : ''}?text=${encodeURIComponent(whatsappMsg)}`;
+            window.open(url, '_blank');
+        }
+
+        async function shareWhatsAppImage() {
+            if(!currentBillData || !generatedBillDataURL) { alert("ફોટો તૈયાર નથી."); return; }
+            if (navigator.share) {
+                try {
+                    const res = await fetch(generatedBillDataURL);
+                    const blob = await res.blob();
+                    const file = new File([blob], `Komal_Bill_${currentBillData.farmerName}.png`, { type: 'image/png' });
+                    await navigator.share({ title: 'કોમલ ડેરી ફાર્મ', text: 'બિલ ફાઇલ', files: [file] });
+                } catch (err) { fallbackDownloadImage(); }
+            } else { fallbackDownloadImage(); }
+        }
+        
+        function fallbackDownloadImage() {
+            let a = document.createElement('a');
+            a.href = generatedBillDataURL;
+            a.download = `Bill_${currentBillData.farmerName}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function generateVCardString(name, business, phone, city) {
+            let vcard = "BEGIN:VCARD\nVERSION:3.0\n";
+            vcard += `FN:${name}\n`;
+            if (business) vcard += `ORG:${business}\n`;
+            if (phone) {
+                let cleanedPhone = phone.replace(/\D/g, '');
+                if(cleanedPhone.length === 10) cleanedPhone = "+91" + cleanedPhone;
+                vcard += `TEL;TYPE=WORK,VOICE:${cleanedPhone}\n`;
+            }
+            if (city) vcard += `ADR;TYPE=WORK:;;;${city};;;\n`;
+            vcard += "END:VCARD";
+            return vcard;
+        }
+
+        function downloadVCard() {
+            if(!currentBillData || !currentBillData.mobileNo) { alert("મોબાઈલ નંબર જરૂરી છે."); return; }
+            let vcardData = generateVCardString(currentBillData.farmerName, currentBillData.businessName, currentBillData.mobileNo, currentBillData.village);
+            let blob = new Blob([vcardData], { type: "text/vcard" });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentBillData.farmerName}_Contact.vcf`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadVCardFromReport(index) {
+            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let b = bills[index];
+            if(b && b.mobileNo) {
+                let vcardData = generateVCardString(b.farmerName, b.businessName, b.mobileNo, b.village);
+                let blob = new Blob([vcardData], { type: "text/vcard" });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = `${b.farmerName}_Contact.vcf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } else { alert("નંબર ઉપલબ્ધ નથી."); }
+        }
+
+        function closeShareModal() { document.getElementById('shareOptionsModal').classList.add('hidden'); }
+        function resetFormAndCloseModal() {
+            closeShareModal();
+            document.getElementById('billingForm').reset();
+            packingData = [];
+            currentBillData = null;
+            generatedBillDataURL = null;
+            document.getElementById('billImageContainer').innerHTML = '';
+            document.getElementById('billImageContainer').classList.add('hidden');
+            document.getElementById('hasBhardo').checked = false;
+            toggleBhardo();
+            renderPackingList();
+            calculateTotals();
+            window.scrollTo(0,0);
+        }
+
+        function loadTodayReport() {
+            let today = todayStr();
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            generateReport();
+        }
+
+        function generateReport() {
+            let startDate = document.getElementById('startDate').value;
+            let endDate = document.getElementById('endDate').value;
+            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let filteredBills = bills.filter(b => b.date >= startDate && b.date <= endDate);
+
+            let cash = 0, online = 0, pending = 0, totalShortage = 0;
+            let tbody = '';
+
+            filteredBills.slice().reverse().forEach((b) => {
+                if(b.paymentMode === 'રોકડા') cash += b.received;
+                if(b.paymentMode === 'ઓનલાઈન') online += b.received;
+                if(b.paymentMode === 'બાકી') pending += (b.totalBill - b.received);
+                let actPending = b.totalBill - b.received;
+                if(actPending > 0 && b.paymentMode !== 'બાકી') pending += actPending;
+
+                totalShortage += b.shortage;
+                let modeColor = b.paymentMode === 'બાકી' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
+                let originalIndex = bills.findIndex(orig => orig.id === b.id);
+                let displayName = b.businessName ? `${b.farmerName} <br><span class='text-[10px] text-green-600'>${b.businessName}</span>` : b.farmerName;
+
+                tbody += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2 text-gray-500 whitespace-nowrap">${b.fDate.substring(0,5)}</td>
+                        <td class="p-2 font-bold">${displayName}</td>
+                        <td class="p-2 font-medium whitespace-nowrap">${b.totalWeight} kg</td>
+                        <td class="p-2">
+                            <div class="font-bold">₹${b.received}</div>
+                            <span class="${modeColor} text-[10px] px-1.5 py-0.5 rounded-full">${b.paymentMode}</span>
+                        </td>
+                        <td class="p-2 text-center">
+                            <button onclick="downloadVCardFromReport(${originalIndex})" class="text-indigo-500 bg-indigo-50 w-10 h-10 rounded-full"><i class="fas fa-user-plus"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if(filteredBills.length === 0) { tbody = `<tr><td colspan="5" class="p-5 text-center text-gray-400 text-sm">કોઈ ડેટા નથી</td></tr>`; }
+
+            document.getElementById('statCash').innerText = '₹' + cash;
+            document.getElementById('statOnline').innerText = '₹' + online;
+            document.getElementById('statPending').innerText = '₹' + pending;
+            document.getElementById('statShortage').innerText = totalShortage.toFixed(2) + ' kg';
+            document.getElementById('reportTableBody').innerHTML = tbody;
+        }
+
+        function printShortageStatement() {
+            let startDate = document.getElementById('startDate').value;
+            let endDate = document.getElementById('endDate').value;
+            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let filteredBills = bills.filter(b => b.date >= startDate && b.date <= endDate);
+
+            if(filteredBills.length === 0) { alert("કોઈ ડેટા નથી."); return; }
+
+            let html = `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>ઘટ્ટ રિપોર્ટ</title><style>body{font-family:Arial;padding:15px;font-size:14px}.header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:15px}table{width:100%;border-collapse:collapse;margin-bottom:15px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background:#f4f4f4}.shortage-col{color:red;font-weight:bold}.footer{text-align:right;font-weight:bold}</style></head><body>
+            <div class="header"><h2>કોમલ ડેરી ફાર્મ</h2><h3>ઘટ્ટ રિપોર્ટ</h3><p>${startDate} થી ${endDate}</p></div>
+            <table><thead><tr><th>તારીખ</th><th>નામ</th><th>આવેલ (kg)</th><th>સારા (kg)</th><th>જીણા (kg)</th><th>ઘટ્ટ (kg)</th></tr></thead><tbody>`;
+            
+            let finalShortage = 0, finalTotalWeight = 0;
+            filteredBills.forEach(b => {
+                let dName = b.businessName ? `${b.farmerName} (${b.businessName})` : b.farmerName;
+                html += `<tr><td>${b.fDate}</td><td style="text-align:left">${dName}</td><td>${b.totalWeight}</td><td>${b.goodWheat}</td><td>${b.thinWheat}</td><td class="shortage-col">${b.shortage.toFixed(2)}</td></tr>`;
+                finalShortage += b.shortage; finalTotalWeight += b.totalWeight;
+            });
+
+            html += `</tbody></table><div class="footer"><p>કુલ આવેલ: ${finalTotalWeight} kg</p><p style="color:red;font-size:18px">એકંદર ઘટ્ટ: ${finalShortage.toFixed(2)} kg</p></div><script>window.onload=function(){window.print()}<\/script></body></html>`;
+            let printWin = window.open('', '_blank');
+            printWin.document.write(html);
+            printWin.document.close();
+        }
+
+        window.onload = () => {
+            let today = todayStr();
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            initRatesDisplay();
+            updateHero(); initSegs();
+            ['bagWeight','bagQty'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addBag(); } }));
+            document.getElementById('billingForm').addEventListener('submit', e => e.preventDefault());
+        }
+    </script>
+</body>
+</html>
