@@ -699,8 +699,7 @@
                 shortLbl.classList.replace('text-yellow-400', 'text-red-500');
             }
 
-            let saffWheat = totalGood + totalThin;
-            let gradingAmt = saffWheat * rates.grading;
+            let gradingAmt = received * rates.grading;
 
             let bhardoW = 0;
             let bhardoAmt = 0;
@@ -714,8 +713,8 @@
             document.getElementById('receivedAmount').value = totalBill.toFixed(2);
             document.getElementById('barTotal').innerText = Math.round(totalBill).toLocaleString('en-IN');
 
-            let breakdown = `ગ્રેડિંગ: ₹${gradingAmt.toFixed(0)}`;
-            if(bhardoW > 0) breakdown += ` + ભરડો: ₹${bhardoAmt.toFixed(0)}`;
+            let breakdown = `ગ્રેડિંગ: ${received} × ${rates.grading} = ₹${gradingAmt.toFixed(0)}`;
+            if(bhardoW > 0) breakdown += ` + ભરડો: ${bhardoW} × ${rates.bhardo} = ₹${bhardoAmt.toFixed(0)}`;
             document.getElementById('calculationBreakdown').innerText = breakdown;
         }
 
