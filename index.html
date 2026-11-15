@@ -66,6 +66,10 @@
         .bag-item { animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         .modal-content { max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
+        body.role-staff .owner-only { display: none !important; }
+        .rseg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; background: #eef2ee; padding: 4px; border-radius: 14px; }
+        .rseg button { padding: 10px 4px; min-height: 44px; border-radius: 11px; font-weight: 700; color: #4b5563; font-size: 14px; }
+        .rseg button.on { background: #fff; color: #14532d; box-shadow: 0 2px 8px rgba(20,83,45,.18); outline: 2px solid #d9bd7a; }
     </style>
 </head>
 <body class="text-gray-800" style="padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));">
@@ -92,7 +96,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="openSettings()" class="bg-white/20 active:bg-white/30 text-white w-11 h-11 flex items-center justify-center rounded-lg text-lg backdrop-blur-sm" title="મજૂરી ભાવ સેટિંગ" aria-label="સેટિંગ">
+                <button type="button" data-nol onclick="toggleDigits()" id="digitBtn" class="bg-white/20 active:bg-white/30 text-white w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold backdrop-blur-sm" title="અંક: English / ગુજરાતી" aria-label="અંક બદલો">123</button>
+                <button type="button" onclick="lockApp('')" class="bg-white/20 active:bg-white/30 text-white w-10 h-10 flex items-center justify-center rounded-lg text-base backdrop-blur-sm" title="લૉક / લૉગ આઉટ" aria-label="લૉક"><i class="fas fa-lock"></i></button>
+                <button onclick="openSettings()" class="owner-only bg-white/20 active:bg-white/30 text-white w-10 h-10 flex items-center justify-center rounded-lg text-lg backdrop-blur-sm" title="મજૂરી ભાવ સેટિંગ" aria-label="સેટિંગ">
                     <i class="fas fa-cog"></i>
                 </button>
                 <div class="text-right text-[10px] sm:text-xs hidden sm:block bg-black/10 p-2 rounded-lg backdrop-blur-sm border border-white/20">
@@ -109,6 +115,7 @@
     </div>
 
     <div class="bg-white shadow-sm mb-5 sticky top-0 z-40">
+        <div id="netBanner" class="hidden bg-red-600 text-white text-xs font-bold text-center py-2 px-3"></div>
         <div class="container mx-auto flex justify-around max-w-4xl">
             <button onclick="switchTab('newBill')" id="tab-newBill" class="tab-btn p-3 sm:p-4 w-full tab-active text-base sm:text-lg"><i class="fas fa-file-invoice mr-2"></i>નવું બિલ</button>
             <button onclick="switchTab('reports')" id="tab-reports" class="tab-btn p-3 sm:p-4 w-full text-gray-500 hover:text-green-600 font-semibold text-base sm:text-lg"><i class="fas fa-chart-pie mr-2"></i>રિપોર્ટ</button>
@@ -120,7 +127,7 @@
         <div id="newBillSection" class="fade-in">
             <div class="hero mb-5">
                 <div><p class="hero-sub" id="heroDate"></p><p class="hero-title">આજનો વેપાર</p></div>
-                <div class="hero-stats"><div><b id="heroCount">0</b><span>બિલ</span></div><div><b id="heroCash">₹0</b><span>જમા</span></div><div><b id="heroShort">0</b><span>ઘટ્ટ kg</span></div></div>
+                <div class="hero-stats"><div><b id="heroCount">0</b><span>બિલ</span></div><div><b id="heroCash">₹0</b><span>જમા</span></div><div><b id="heroPend">₹0</b><span>બાકી</span></div></div>
             </div>
             <form id="billingForm" class="space-y-5 sm:space-y-7">
                 <div id="editBanner" class="hidden bg-orange-50 border-2 border-orange-300 text-orange-800 rounded-xl p-3 text-sm font-bold flex justify-between items-center gap-2"><span>✏️ જૂનું બિલ સુધારી રહ્યા છો</span><button type="button" onclick="cancelEdit()" class="bg-white border border-orange-300 px-3 py-1.5 rounded-lg text-xs">રદ કરો</button></div>
@@ -181,6 +188,16 @@
                             <button type="button" onclick="addBag()" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-2.5 sm:p-3 rounded-lg font-bold shadow-md transition-all active:scale-95 flex justify-center items-center h-[46px] sm:h-[50px]">
                                 <i class="fas fa-plus mr-1"></i> ઉમેરો
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="text-xs font-bold text-gray-500 mb-2">⚡ ઝડપી બેગ (ઉપર પસંદ કરેલ પ્રકાર + નંગ મુજબ તરત ઉમેરાશે)</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" onclick="quickBag(30)" class="py-3 rounded-xl bg-blue-100 text-blue-800 font-extrabold text-lg border border-blue-200 active:bg-blue-200">30</button>
+                            <button type="button" onclick="quickBag(40)" class="py-3 rounded-xl bg-blue-100 text-blue-800 font-extrabold text-lg border border-blue-200 active:bg-blue-200">40</button>
+                            <button type="button" onclick="quickBag(50)" class="py-3 rounded-xl bg-blue-100 text-blue-800 font-extrabold text-lg border border-blue-200 active:bg-blue-200">50</button>
+                            <button type="button" onclick="quickBag(60)" class="py-3 rounded-xl bg-blue-100 text-blue-800 font-extrabold text-lg border border-blue-200 active:bg-blue-200">60</button>
                         </div>
                     </div>
 
@@ -277,6 +294,7 @@
                             <p><strong>વાહન:</strong> <span id="btVehicle"></span></p>
                         </div>
                         <div style="text-align: right;">
+                            <p><strong>બિલ નં.:</strong> <span id="btNo"></span></p>
                             <p><strong>તારીખ:</strong> <span id="btDate"></span></p>
                             <p><strong>મોબાઈલ:</strong> <span id="btMobile"></span></p>
                         </div>
@@ -388,7 +406,62 @@
         </div>
 
         <div id="reportsSection" class="hidden fade-in space-y-5 sm:space-y-6 pb-20">
-            <div class="glass-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center gap-3 border-l-4 border-gray-700">
+            <div class="rseg owner-only" id="repSeg">
+                <button type="button" data-v="list" class="on" onclick="setRepView('list')">📋 બિલ</button>
+                <button type="button" data-v="month" onclick="setRepView('month')">📅 મહિના</button>
+                <button type="button" data-v="ledger" onclick="setRepView('ledger')">📒 ખાતાવહી</button>
+            </div>
+
+            <div id="daySummary" class="glass-card p-4 border-l-4 border-green-600">
+                <div class="flex justify-between items-center mb-3 gap-2">
+                    <h3 class="font-bold text-green-800 text-sm sm:text-base"><i class="fas fa-clipboard-list mr-2"></i><span id="dsTitle">દૈનિક સારાંશ</span></h3>
+                    <button type="button" onclick="shareDaySummary()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-lg text-xs font-bold flex-shrink-0"><i class="fab fa-whatsapp mr-1"></i>શેર</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                    <div class="bg-gray-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">બિલ</p><b id="dsCount" class="text-lg text-gray-800">0</b></div>
+                    <div class="bg-gray-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">આવેલ જથ્થો</p><b id="dsWeight" class="text-lg text-gray-800">0</b></div>
+                    <div class="bg-gray-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">કુલ બિલ</p><b id="dsBill" class="text-lg text-gray-800">₹0</b></div>
+                    <div class="bg-gray-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">જમા</p><b id="dsRec" class="text-lg text-green-700">₹0</b></div>
+                </div>
+            </div>
+
+            <div data-rv="month" style="display:none" class="space-y-4">
+                <div class="glass-card p-4 flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-[10px] sm:text-xs font-bold mb-1 text-gray-500">મહિનો પસંદ કરો</label>
+                        <input type="month" id="monthPick" onchange="renderMonthly()" class="w-full min-w-0 p-2.5 border rounded-lg text-base bg-gray-50">
+                    </div>
+                    <button type="button" onclick="downloadMonthly()" class="bg-teal-600 active:bg-teal-700 text-white px-4 h-[46px] rounded-lg font-bold text-sm flex-shrink-0"><i class="fas fa-file-excel mr-1"></i>CSV</button>
+                </div>
+                <div id="monthCards" class="grid grid-cols-2 gap-3"></div>
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 text-gray-600 text-xs border-b"><th class="p-2">તારીખ</th><th class="p-2">બિલ</th><th class="p-2">kg</th><th class="p-2">બિલ ₹</th><th class="p-2">જમા ₹</th><th class="p-2">ઘટ્ટ</th></tr></thead>
+                            <tbody id="monthBody" class="text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <h4 class="font-bold text-gray-700 text-sm">બધા મહિના (ખોલવા ટેપ કરો)</h4>
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 text-gray-600 text-xs border-b"><th class="p-2">મહિનો</th><th class="p-2">બિલ</th><th class="p-2">kg</th><th class="p-2">બિલ ₹</th><th class="p-2">જમા ₹</th><th class="p-2">ઘટ્ટ</th></tr></thead>
+                            <tbody id="allMonthsBody" class="text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div data-rv="ledger" style="display:none" class="space-y-3">
+                <div class="glass-card p-4">
+                    <input type="search" id="ledSearch" oninput="renderLedger()" placeholder="ગ્રાહક / નંબર / ગામ શોધો" class="w-full p-3 border rounded-lg bg-gray-50 text-base">
+                    <div class="flex justify-between items-center mt-3 text-sm font-bold"><span>કુલ બાકી લેણું:</span><span id="ledTotalPend" class="text-red-600 text-lg">₹0</span></div>
+                    <label class="flex items-center gap-2 mt-2 text-sm font-semibold text-gray-700"><input type="checkbox" id="ledOnlyPend" onchange="renderLedger()" class="w-5 h-5 accent-green-600"> ફક્ત બાકી વાળા ગ્રાહક</label>
+                </div>
+                <div id="ledList" class="space-y-2"></div>
+            </div>
+            <div id="repFilter" class="glass-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center gap-3 border-l-4 border-gray-700">
                 <div class="flex gap-2 items-end w-full sm:w-auto">
                     <div class="flex-1">
                         <label class="block text-[10px] sm:text-xs font-bold mb-1 text-gray-500">શરૂઆત</label>
@@ -401,13 +474,13 @@
                     <button onclick="generateReport()" class="bg-gray-800 text-white px-4 py-2 rounded-lg active:bg-gray-900 font-bold transition-transform active:scale-95 h-[46px] w-12 flex-shrink-0"><i class="fas fa-search"></i></button>
                 </div>
                 
-                <button onclick="printShortageStatement()" class="w-full sm:w-auto bg-red-600 active:bg-red-700 text-white px-4 py-3 rounded-lg font-bold shadow-md transition-transform active:scale-95 flex items-center justify-center text-sm">
+                <button onclick="printShortageStatement()" class="owner-only w-full sm:w-auto bg-red-600 active:bg-red-700 text-white px-4 py-3 rounded-lg font-bold shadow-md transition-transform active:scale-95 flex items-center justify-center text-sm">
                     <i class="fas fa-print mr-2"></i> ઘટ્ટ રિપોર્ટ કાઢો
                 </button>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="downloadAllData()" class="bg-teal-600 active:bg-teal-700 text-white px-3 py-3.5 rounded-xl font-bold shadow-md text-sm"><i class="fas fa-file-excel mr-1"></i> બધો ડેટા ડાઉનલોડ</button>
+                <button onclick="downloadAllData()" class="owner-only bg-teal-600 active:bg-teal-700 text-white px-3 py-3.5 rounded-xl font-bold shadow-md text-sm"><i class="fas fa-file-excel mr-1"></i> બધો ડેટા ડાઉનલોડ</button>
                 <button onclick="downloadAllContacts()" class="bg-indigo-600 active:bg-indigo-700 text-white px-3 py-3.5 rounded-xl font-bold shadow-md text-sm"><i class="fas fa-address-book mr-1"></i> બધા કોન્ટેક્ટ (vCard)</button>
             </div>
 
@@ -424,7 +497,7 @@
                     <p class="text-[10px] sm:text-xs text-gray-500 font-bold">બાકી પેમેન્ટ</p>
                     <h3 class="text-2xl font-extrabold text-purple-600 mt-1" id="statPending">₹0</h3>
                 </div>
-                <div class="bg-gradient-to-br from-red-500 to-red-600 p-4 rounded-xl shadow-sm text-center text-white relative overflow-hidden">
+                <div class="owner-only bg-gradient-to-br from-red-500 to-red-600 p-4 rounded-xl shadow-sm text-center text-white relative overflow-hidden">
                     <p class="text-[10px] sm:text-xs font-bold opacity-90">કુલ ઘટ્ટ</p>
                     <h3 class="text-2xl font-extrabold mt-1" id="statShortage">0 kg</h3>
                 </div>
@@ -468,6 +541,12 @@
                     <label class="block text-xs font-bold mb-1 text-gray-600"><i class="fas fa-cloud-upload-alt mr-1 text-green-600"></i>Google Sheet લિંક (ઑટો સેવ)</label>
                     <input type="url" id="settingSheetUrl" class="w-full p-2.5 border rounded-lg text-base" placeholder="https://script.google.com/macros/s/.../exec">
                 </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                    <label class="block text-xs font-bold text-amber-900"><i class="fas fa-user-lock mr-1"></i>સ્ટાફ PIN (માલિક PIN થી અલગ, ૬ આંકડા વધુ સારા)</label>
+                    <input type="password" inputmode="numeric" maxlength="8" id="settingStaffPin" autocomplete="new-password" class="w-full p-2.5 border rounded-lg text-center font-bold tracking-widest" placeholder="નવો સ્ટાફ PIN">
+                    <button type="button" onclick="saveStaffPin()" class="w-full bg-amber-500 text-white font-bold py-2.5 rounded-xl text-sm">સ્ટાફ PIN સેવ કરો</button>
+                    <p class="text-[11px] text-amber-800" id="staffPinState"></p>
+                </div>
                 <button type="button" onclick="lockApp('')" class="w-full bg-gray-100 text-gray-700 font-bold py-2.5 rounded-xl text-sm"><i class="fas fa-lock mr-1"></i>ઍપ લૉક કરો (લૉગ આઉટ)</button>
                 <button type="button" onclick="copySetupLink()" class="w-full border-2 border-green-600 text-green-700 font-bold py-2.5 rounded-xl text-sm"><i class="fas fa-share-alt mr-1"></i>સ્ટાફ માટે સેટઅપ લિંક કૉપી કરો</button>
                 <button type="button" onclick="saveSettings()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-md">સેવ કરો</button>
@@ -479,33 +558,69 @@
         function getPin() { return localStorage.getItem('komalPin') || ''; }
         function authUrl(url) { return url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(getPin()); }
         function lockApp(msg) {
-            localStorage.removeItem('komalPin');
+            localStorage.removeItem('komalPin'); localStorage.removeItem('komalRole');
             document.getElementById('pinLock').style.display = 'flex';
             document.getElementById('pinMsg').innerText = msg || '';
             document.getElementById('pinInput').value = '';
         }
+        // માલિક PIN = Google Script નો PIN. સ્ટાફ PIN = અલગ; તે ક્લાઉડ PIN ને encrypt કરીને (AES-GCM) સેટઅપ લિંકમાં રાખે છે.
+        const b64 = u => btoa(String.fromCharCode(...new Uint8Array(u)));
+        const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+        async function deriveKey(pw, salt) {
+            const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+        async function makeStaffBlob(staffPin, cloudPin) {
+            const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(staffPin, salt);
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(cloudPin));
+            return { s: b64(salt), i: b64(iv), c: b64(ct) };
+        }
+        async function openStaffBlob(blob, pin) {
+            try {
+                const key = await deriveKey(pin, unb64(blob.s));
+                const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(blob.i) }, key, unb64(blob.c));
+                return new TextDecoder().decode(pt);
+            } catch (e) { return null; }
+        }
+        async function sha(s) { return b64(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('komal:' + s))); }
         async function unlockApp() {
             const pin = document.getElementById('pinInput').value.trim();
             const msg = document.getElementById('pinMsg'), btn = document.getElementById('pinBtn');
             if (!pin) { msg.innerText = 'PIN નાખો.'; return; }
             btn.disabled = true; msg.innerText = 'ચકાસી રહ્યા છીએ...';
+            let cloudPin = pin, asRole = 'owner', staffOk = false;
+            try {
+                const blob = JSON.parse(localStorage.getItem('komalStaffBlob') || 'null');
+                if (blob && window.crypto && crypto.subtle) { const p = await openStaffBlob(blob, pin); if (p) { cloudPin = p; asRole = 'staff'; staffOk = true; } }
+            } catch (e) {}
+            const finish = () => {
+                localStorage.setItem('komalPin', cloudPin); localStorage.setItem('komalRole', asRole);
+                document.getElementById('pinLock').style.display = 'none'; msg.innerText = '';
+                applyRole(); setRepView('list'); updateHero(); refreshCustomers(); pullFromSheet(); flushQueue();
+            };
             try {
                 const url = getSheetUrl();
-                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(pin) + '&t=' + Date.now());
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(cloudPin) + '&t=' + Date.now());
                 const data = await res.json();
-                if (data && data.error === 'pin') msg.innerText = 'ખોટો PIN. ફરી પ્રયત્ન કરો.';
+                if (data && data.error === 'pin') msg.innerText = staffOk ? 'સ્ટાફ સેટઅપ જૂનું છે — માલિક પાસેથી નવી સેટઅપ લિંક લો.' : 'ખોટો PIN. ફરી પ્રયત્ન કરો.';
                 else if (Array.isArray(data)) {
-                    localStorage.setItem('komalPin', pin);
-                    document.getElementById('pinLock').style.display = 'none';
-                    msg.innerText = ''; pullFromSheet(); flushQueue();
+                    if (asRole === 'owner') { try { localStorage.setItem('komalOwnerH', await sha(pin)); } catch (e) {} }
+                    finish();
                 } else msg.innerText = 'જવાબ સમજાયો નહીં. Google Script અપડેટ કરી છે?';
-            } catch (e) { msg.innerText = 'ઇન્ટરનેટ ચાલુ કરીને ફરી પ્રયત્ન કરો.'; }
+            } catch (e) {
+                // ઑફલાઇન: સ્ટાફ PIN (decrypt થયો) અથવા અગાઉ ચકાસેલ માલિક PIN હોય તો ખોલો
+                let ok = staffOk;
+                if (!ok) { try { ok = localStorage.getItem('komalOwnerH') === await sha(pin); } catch (e2) {} }
+                if (ok) finish(); else msg.innerText = 'ઇન્ટરનેટ ચાલુ કરીને ફરી પ્રયત્ન કરો.';
+            }
             btn.disabled = false;
         }
         const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw0K9anKRYOccdI9EBm7NtGYXRAnD3nkPHRyrzIEvfac05hiMLGe_vTBd2veveV2gsgMg/exec';
         function getSheetUrl() { return localStorage.getItem('sheetUrl') || DEFAULT_SHEET_URL; }
         function applySetupLink() {
-            const u = new URLSearchParams(location.search).get('sheet');
+            const sp = new URLSearchParams(location.search), u = sp.get('sheet'), sb = sp.get('staff');
+            if (sb) { try { JSON.parse(sb); localStorage.setItem('komalStaffBlob', sb); } catch (e) {} }
             if (u && u.startsWith('https://script.google.com/')) {
                 localStorage.setItem('sheetUrl', u);
                 history.replaceState(null, '', location.pathname);
@@ -515,8 +630,9 @@
         function copySetupLink() {
             const u = document.getElementById('settingSheetUrl').value.trim() || getSheetUrl();
             if (!u) { alert('પહેલા Sheet લિંક નાખો.'); return; }
-            const link = location.origin + location.pathname + '?sheet=' + encodeURIComponent(u);
-            if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => alert('લિંક કૉપી થઈ ગઈ! સ્ટાફને WhatsApp પર મોકલો.'));
+            const sb = localStorage.getItem('komalStaffBlob');
+            const link = location.origin + location.pathname + '?sheet=' + encodeURIComponent(u) + (sb ? '&staff=' + encodeURIComponent(sb) : '');
+            if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => toast('✅ લિંક કૉપી થઈ ગઈ'));
             else prompt('આ લિંક કૉપી કરો:', link);
         }
         let pulling = false;
@@ -543,9 +659,12 @@
                 });
                 if (added) { local.sort((a, b) => a.id - b.id); localStorage.setItem('komalBills', JSON.stringify(local)); }
                 local.filter(b => !remoteIds.has(b.id)).forEach(b => sheetPost(b).catch(() => {}));
-                updateHero(); refreshCustomers();
+                // edit / delete / જમા જે ક્લાઉડ સુધી પહોંચ્યું નથી તે ફરી મોકલો
+                const rmap = new Map(remote.filter(x => x && x.id).map(x => [x.id, x]));
+                local.forEach(b => { const r = rmap.get(b.id); if (r && (b.updatedAt || 0) > (r.updatedAt || 0)) sheetPost(b).catch(() => {}); });
+                assignBillNos(); updateHero(); refreshCustomers(); updateNet(); localStorage.setItem('komalLastSync', Date.now());
                 pullCustomers(url);
-                if (added && !document.getElementById('reportsSection').classList.contains('hidden')) generateReport();
+                if (added) refreshReports();
             } catch (e) { /* offline or not set up */ } finally { pulling = false; }
         }
         function sheetPost(bill) {
@@ -568,12 +687,12 @@
             flushCustQueue();
         }
         function updateHero() {
-            const t = todayStr(); const all = JSON.parse(localStorage.getItem('komalBills')) || [];
+            const t = todayStr(); const all = liveBills();
             const d = all.filter(b => b.date === t);
             document.getElementById('heroDate').innerText = new Date().toLocaleDateString('gu-IN', { weekday: 'long', day: 'numeric', month: 'long' }) + (getSheetUrl() ? '  •  ☁️ ક્લાઉડ ચાલુ' : '  •  ☁️ બંધ');
             document.getElementById('heroCount').innerText = d.length;
             document.getElementById('heroCash').innerText = '₹' + Math.round(d.reduce((s, b) => s + b.received, 0)).toLocaleString('en-IN');
-            document.getElementById('heroShort').innerText = d.reduce((s, b) => s + b.shortage, 0).toFixed(1);
+            document.getElementById('heroPend').innerText = '₹' + Math.round(d.reduce((s, b) => s + Math.max(0, (b.totalBill || 0) - (b.received || 0)), 0)).toLocaleString('en-IN');
         }
         function syncSegs() {
             document.querySelectorAll('.seg').forEach(seg => { const v = document.getElementById(seg.dataset.target).value; seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); });
@@ -602,7 +721,10 @@
             document.getElementById('settingRateBhardo').value = rates.bhardo;
         }
 
-        function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
+        function openSettings() {
+            document.getElementById('staffPinState').innerText = localStorage.getItem('komalStaffBlob') ? '✅ સ્ટાફ PIN સેટ છે. બદલવા નવો નાખીને સેવ કરો, પછી સેટઅપ લિંક ફરી સ્ટાફને મોકલો.' : 'હજી સ્ટાફ PIN સેટ નથી.';
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
         function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
         
         function saveSettings() {
@@ -619,7 +741,7 @@
                 initRatesDisplay();
                 calculateTotals();
                 closeSettings();
-                alert("ભાવ સફળતાપૂર્વક અપડેટ થઈ ગયા!");
+                toast('✅ ભાવ અપડેટ થઈ ગયા');
             }
         }
 
@@ -637,7 +759,7 @@
             } else {
                 document.getElementById('reportsSection').classList.remove('hidden');
                 document.getElementById('tab-reports').classList.add('tab-active');
-                loadTodayReport(); pullFromSheet(); 
+                loadTodayReport(); pullFromSheet(); setRepView(curRepView); 
             }
             window.scrollTo(0,0);
         }
@@ -712,6 +834,16 @@
             });
         }
 
+        function toast(msg) {
+            let t = document.getElementById('toastBox');
+            if (!t) {
+                t = document.createElement('div'); t.id = 'toastBox';
+                t.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#14532d;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:90%;text-align:center;transition:opacity .3s;pointer-events:none;';
+                document.body.appendChild(t);
+            }
+            t.innerText = msg; t.style.opacity = '1';
+            clearTimeout(t._h); t._h = setTimeout(() => t.style.opacity = '0', 2200);
+        }
         const n2 = x => String(parseFloat((+x || 0).toFixed(2)));
         let editingId = null, editRates = null;
         function curRates() { return editRates || rates; }
@@ -816,6 +948,8 @@
 
             currentBillData = {
                 id: orig ? orig.id : Date.now(),
+                no: orig ? (orig.no || nextBillNo()) : nextBillNo(),
+                payments: orig ? (orig.payments || []) : [],
                 date: orig ? orig.date : today,
                 fDate: orig ? orig.fDate : fDate,
                 edited: !!orig,
@@ -849,10 +983,11 @@
             localStorage.setItem('komalBills', JSON.stringify(bills));
             updateHero();
             upsertCustomer({ name: farmerName, mobile: mobileNo, business: businessName, village: village, vehicle: currentBillData.vehicleNo });
-            syncToSheet(currentBillData);
+            syncToSheet(currentBillData); updateNet();
+            if (!navigator.onLine) toast('📴 ઑફલાઇન — ફોનમાં સેવ થયું, નેટ આવતા ક્લાઉડમાં જશે');
 
             let displayName = businessName ? `${farmerName} (${businessName})` : farmerName;
-            document.getElementById('modalFarmerName').innerText = displayName;
+            document.getElementById('modalFarmerName').innerText = 'બિલ નં. ' + currentBillData.no + ' • ' + displayName;
             document.getElementById('modalTotalWheat').innerText = totalReceived;
             document.getElementById('modalBill').innerText = totalBill;
             
@@ -933,7 +1068,7 @@
 
         function downloadVCardFromReport(index) {
             let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
-            let b = bills[index];
+            let b = bills.find(x => x.id === index);
             if(b && b.mobileNo) {
                 let vcardData = generateVCardString(b.farmerName, b.businessName, b.mobileNo, b.village);
                 let blob = new Blob([vcardData], { type: "text/vcard" });
@@ -950,6 +1085,7 @@
             const bd = getBreakdown(b);
             const set = (id, v) => document.getElementById(id).innerText = v;
             set('btName', b.farmerName);
+            set('btNo', b.no || '-');
             document.getElementById('btBusinessRow').style.display = b.businessName ? 'block' : 'none';
             set('btBusiness', b.businessName || '');
             set('btVillage', b.village || '-');
@@ -969,6 +1105,7 @@
             set('btTotalB', b.totalBill);
             set('btRecB', b.received);
             set('btMode', b.paymentMode);
+            localizeDigits(document.getElementById('billTemplate'));
         }
 
         function billMessage(b) {
@@ -979,6 +1116,7 @@
             return `*🌾 કોમલ ડેરી ફાર્મ - બિલ 🌾*
 ---------------------------
 ${head}
+🧾 *બિલ નં.:* ${b.no || '-'}
 📅 *તારીખ:* ${b.fDate}
 ---------------------------
 📦 *કુલ આવેલ ઘઉં:* ${b.totalWeight} કિલો
@@ -993,10 +1131,10 @@ ${labor}---------------------------
 ---------------------------
 🙏 *આભાર!*`;
         }
-        function waSend(b) { window.open(`https://wa.me/${waNum(b.mobileNo)}?text=${encodeURIComponent(billMessage(b))}`, '_blank'); }
+        function waSend(b) { window.open(`https://wa.me/${waNum(b.mobileNo)}?text=${encodeURIComponent(nd(billMessage(b)))}`, '_blank'); }
         function smsSend(b) {
             if (!b.mobileNo) { alert('મોબાઈલ નંબર નથી.'); return; }
-            location.href = `sms:${normPhone(b.mobileNo)}?body=${encodeURIComponent(billMessage(b).replace(/\*/g, ''))}`;
+            location.href = `sms:${normPhone(b.mobileNo)}?body=${encodeURIComponent(nd(billMessage(b).replace(/\*/g, '')))}`;
         }
         function callSend(b) {
             if (!b.mobileNo) { alert('મોબાઈલ નંબર નથી.'); return; }
@@ -1087,24 +1225,25 @@ ${labor}---------------------------
             setTimeout(() => URL.revokeObjectURL(url), 2000);
         }
         function downloadAllData() {
-            const bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            if (isStaff()) return;
+            const bills = liveBills();
             if (!bills.length) { alert('કોઈ ડેટા નથી.'); return; }
-            const head = ['તારીખ', 'નામ', 'પેઢી', 'મોબાઈલ', 'ગામ', 'વાહન', 'આવેલ કુલ જથ્થો', 'સારા ઘઉં', 'જીણા ઘઉં', 'ઘટ્ટ', 'ગ્રેડિંગ જથ્થો', 'ગ્રેડિંગ ભાવ', 'ગ્રેડિંગ રકમ', 'ભરડો જથ્થો', 'ભરડો ભાવ', 'ભરડો રકમ', 'કુલ બિલ', 'જમા', 'બાકી', 'પેમેન્ટ મોડ'];
+            const head = ['બિલ નં.', 'તારીખ', 'નામ', 'પેઢી', 'મોબાઈલ', 'ગામ', 'વાહન', 'આવેલ કુલ જથ્થો', 'સારા ઘઉં', 'જીણા ઘઉં', 'ઘટ્ટ', 'ગ્રેડિંગ જથ્થો', 'ગ્રેડિંગ ભાવ', 'ગ્રેડિંગ રકમ', 'ભરડો જથ્થો', 'ભરડો ભાવ', 'ભરડો રકમ', 'કુલ બિલ', 'જમા', 'બાકી', 'પેમેન્ટ મોડ'];
             const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
             const rows = bills.slice().sort((a, b) => a.id - b.id).map(b => {
                 const d = getBreakdown(b);
-                return [b.fDate, b.farmerName, b.businessName, b.mobileNo, b.village, b.vehicleNo, b.totalWeight, b.goodWheat, b.thinWheat, n2(b.shortage), n2(d.gQty), n2(d.gRate), n2(d.gAmt), n2(d.bQty), d.bQty ? n2(d.bRate) : '', n2(d.bAmt), b.totalBill, b.received, n2((b.totalBill || 0) - (b.received || 0)), b.paymentMode].map(q).join(',');
+                return [b.no, b.fDate, b.farmerName, b.businessName, b.mobileNo, b.village, b.vehicleNo, b.totalWeight, b.goodWheat, b.thinWheat, n2(b.shortage), n2(d.gQty), n2(d.gRate), n2(d.gAmt), n2(d.bQty), d.bQty ? n2(d.bRate) : '', n2(d.bAmt), b.totalBill, b.received, n2((b.totalBill || 0) - (b.received || 0)), b.paymentMode].map(q).join(',');
             });
             saveFile('Komal_Data_' + todayStr() + '.csv', '\uFEFF' + [head.map(q).join(',')].concat(rows).join('\r\n'), 'text/csv;charset=utf-8');
         }
         function downloadAllContacts() {
-            const bills = (JSON.parse(localStorage.getItem('komalBills')) || []).slice().sort((a, b) => a.id - b.id);
+            const bills = liveBills().slice().sort((a, b) => a.id - b.id);
             const map = new Map();
             bills.forEach(b => { const p = normPhone(b.mobileNo); if (p.length >= 11) map.set(p, b); });
             if (!map.size) { alert('કોઈ મોબાઈલ નંબર નથી.'); return; }
             const cards = [...map.values()].map(b => generateVCardString(b.farmerName, b.businessName, b.mobileNo, b.village));
             saveFile('Komal_All_Contacts.vcf', cards.join('\r\n') + '\r\n', 'text/vcard;charset=utf-8');
-            setTimeout(() => alert(map.size + ' કોન્ટેક્ટની vCard ફાઇલ ડાઉનલોડ થઈ. ફાઇલ ખોલી "Contacts" માં ઇમ્પોર્ટ કરો.'), 400);
+            toast('✅ ' + map.size + ' કોન્ટેક્ટની vCard ફાઇલ ડાઉનલોડ થઈ');
         }
 
         function closeShareModal() { document.getElementById('shareOptionsModal').classList.add('hidden'); }
@@ -1132,12 +1271,13 @@ ${labor}---------------------------
         }
 
         function generateReport() {
+            if (isStaff()) { const t0 = todayStr(); document.getElementById('startDate').value = t0; document.getElementById('endDate').value = t0; }
             let startDate = document.getElementById('startDate').value;
             let endDate = document.getElementById('endDate').value;
-            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let bills = liveBills();
             let filteredBills = bills.filter(b => b.date >= startDate && b.date <= endDate);
 
-            let cash = 0, online = 0, pending = 0, totalShortage = 0;
+            let cash = 0, online = 0, pending = 0, totalShortage = 0, sumW = 0, sumBill = 0, sumRec = 0;
             let tbody = '';
 
             filteredBills.slice().reverse().forEach((b) => {
@@ -1147,14 +1287,14 @@ ${labor}---------------------------
                 let actPending = b.totalBill - b.received;
                 if(actPending > 0 && b.paymentMode !== 'બાકી') pending += actPending;
 
-                totalShortage += b.shortage;
+                totalShortage += b.shortage; sumW += +b.totalWeight || 0; sumBill += +b.totalBill || 0; sumRec += +b.received || 0;
                 let modeColor = b.paymentMode === 'બાકી' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
                 let originalIndex = bills.findIndex(orig => orig.id === b.id);
                 let displayName = b.businessName ? `${b.farmerName} <br><span class='text-[10px] text-green-600'>${b.businessName}</span>` : b.farmerName;
 
                 tbody += `
                     <tr class="hover:bg-gray-50">
-                        <td class="p-2 text-gray-500 whitespace-nowrap">${b.fDate.substring(0,5)}</td>
+                        <td class="p-2 text-gray-500 whitespace-nowrap">${b.fDate.substring(0,5)}<br><span class="text-[10px] text-gray-400">#${b.no || '-'}</span></td>
                         <td class="p-2 font-bold">${displayName}</td>
                         <td class="p-2 font-medium whitespace-nowrap">${b.totalWeight} kg</td>
                         <td class="p-2">
@@ -1162,16 +1302,17 @@ ${labor}---------------------------
                             <span class="${modeColor} text-[10px] px-1.5 py-0.5 rounded-full">${b.paymentMode}</span>
                         </td>
                         <td class="p-2 text-center">
-                            <button onclick="downloadVCardFromReport(${originalIndex})" class="text-indigo-500 bg-indigo-50 w-10 h-10 rounded-full"><i class="fas fa-user-plus"></i></button>
+                            <button onclick="downloadVCardFromReport(${b.id})" class="text-indigo-500 bg-indigo-50 w-10 h-10 rounded-full"><i class="fas fa-user-plus"></i></button>
                         </td>
                     </tr>
                     <tr class="border-b"><td colspan="5" class="px-2 pb-2.5">
                         <div class="flex gap-1.5 flex-wrap">
                             <button onclick="openBillFromReport(${b.id})" class="bg-green-50 text-green-700 border border-green-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-print mr-1"></i>બિલ / પ્રિન્ટ</button>
-                            <button onclick="editBill(${b.id})" class="bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-pen mr-1"></i>સુધારો</button>
+                            <button onclick="editBill(${b.id})" class="${canEdit(b) ? '' : 'hidden '}bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-pen mr-1"></i>સુધારો</button>
                             <button onclick="callBill(${b.id})" class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-phone mr-1"></i>કોલ</button>
                             <button onclick="waBill(${b.id})" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</button>
                             <button onclick="smsBill(${b.id})" class="bg-gray-50 text-gray-700 border border-gray-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-comment-sms mr-1"></i>SMS</button>
+                            <button onclick="deleteBill(${b.id})" class="owner-only bg-red-50 text-red-700 border border-red-200 px-2.5 py-2 rounded-lg text-[11px] font-bold"><i class="fas fa-trash mr-1"></i>કાઢો</button>
                         </div>
                     </td></tr>
                 `;
@@ -1184,12 +1325,14 @@ ${labor}---------------------------
             document.getElementById('statPending').innerText = '₹' + pending;
             document.getElementById('statShortage').innerText = totalShortage.toFixed(2) + ' kg';
             document.getElementById('reportTableBody').innerHTML = tbody;
+            renderDaySummary(startDate, endDate, filteredBills.length, sumW, sumBill, sumRec, cash, online, pending);
         }
 
         function printShortageStatement() {
+            if (isStaff()) return;
             let startDate = document.getElementById('startDate').value;
             let endDate = document.getElementById('endDate').value;
-            let bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let bills = liveBills();
             let filteredBills = bills.filter(b => b.date >= startDate && b.date <= endDate);
 
             if(filteredBills.length === 0) { alert("કોઈ ડેટા નથી."); return; }
@@ -1221,7 +1364,7 @@ ${labor}---------------------------
                 if (!old || ts >= old.ts) map.set(k, { c, ts });
             };
             (JSON.parse(localStorage.getItem('komalCustomers')) || []).forEach(c => put(c, c.updatedAt || 0));
-            (JSON.parse(localStorage.getItem('komalBills')) || []).forEach(b => put({ name: b.farmerName, mobile: b.mobileNo, business: b.businessName, village: b.village, vehicle: b.vehicleNo }, b.updatedAt || b.id || 0));
+            liveBills().forEach(b => put({ name: b.farmerName, mobile: b.mobileNo, business: b.businessName, village: b.village, vehicle: b.vehicleNo }, b.updatedAt || b.id || 0));
             return [...map.values()].map(x => x.c).sort((a, b) => a.name.localeCompare(b.name, 'gu'));
         }
         function refreshCustomers() {
@@ -1295,11 +1438,247 @@ ${labor}---------------------------
             const c = { name: g('farmerName'), mobile: g('mobileNo'), business: g('businessName'), village: g('villageName'), vehicle: g('vehicleNo') };
             if (!c.name) { alert('નામ લખો.'); return; }
             upsertCustomer(c);
-            alert('ગ્રાહક સેવ થઈ ગયા: ' + c.name);
+            toast('✅ ગ્રાહક સેવ થયા: ' + c.name);
+        }
+
+        // ================= V2: ખાતાવહી, રિપોર્ટ, સુરક્ષા, ઑફલાઇન, અંક =================
+        let curRepView = 'list';
+        const GU_D = '૦૧૨૩૪૫૬૭૮૯';
+        const GMONTHS = ['જાન્યુઆરી', 'ફેબ્રુઆરી', 'માર્ચ', 'એપ્રિલ', 'મે', 'જૂન', 'જુલાઈ', 'ઑગસ્ટ', 'સપ્ટેમ્બર', 'ઑક્ટોબર', 'નવેમ્બર', 'ડિસેમ્બર'];
+        const money = x => Math.round(+x || 0).toLocaleString('en-IN');
+        const fmtD = d => d ? String(d).split('-').reverse().join('/') : '';
+        function liveBills() { return (JSON.parse(localStorage.getItem('komalBills')) || []).filter(b => !b.deleted); }
+        function role() { return localStorage.getItem('komalRole') || 'owner'; }
+        function isStaff() { return role() === 'staff'; }
+        function canEdit(b) { return !isStaff() || b.date === todayStr(); }
+        function applyRole() {
+            document.body.classList.toggle('role-staff', isStaff());
+            ['startDate', 'endDate'].forEach(i => document.getElementById(i).disabled = isStaff());
+        }
+
+        // ---- અંક: English / ગુજરાતી ----
+        function numLang() { return localStorage.getItem('numLang') || 'en'; }
+        function nd(s) { s = String(s); return numLang() === 'gu' ? s.replace(/[0-9]/g, d => GU_D[d]) : s.replace(/[૦-૯]/g, d => GU_D.indexOf(d)); }
+        function localizeDigits(root) {
+            const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => {
+                const p = n.parentElement;
+                if (!p || /^(SCRIPT|STYLE|TEXTAREA)$/.test(p.tagName) || p.closest('[data-nol]')) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+            } });
+            const list = []; while (w.nextNode()) list.push(w.currentNode);
+            list.forEach(n => { const v = nd(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; });
+        }
+        let _nlBusy = false, _nlT = null;
+        function runLocalize() { _nlBusy = true; try { localizeDigits(document.body); } finally { setTimeout(() => { _nlBusy = false; }, 0); } }
+        const _mo = new MutationObserver(() => { if (_nlBusy) return; clearTimeout(_nlT); _nlT = setTimeout(runLocalize, 30); });
+        function toggleDigits() {
+            localStorage.setItem('numLang', numLang() === 'gu' ? 'en' : 'gu');
+            document.getElementById('digitBtn').textContent = numLang() === 'gu' ? '૧૨૩' : '123';
+            runLocalize();
+            toast(numLang() === 'gu' ? 'અંક: ગુજરાતી (૧૨૩)' : 'Digits: English (123)');
+        }
+
+        // ---- ઝડપી બેગ ----
+        function quickBag(w) { document.getElementById('bagWeight').value = w; addBag(); }
+
+        // ---- ઑફલાઇન / સિંક સ્થિતિ ----
+        function updateNet() {
+            const el = document.getElementById('netBanner');
+            const q = (JSON.parse(localStorage.getItem('komalQueue')) || []).length + (JSON.parse(localStorage.getItem('komalCustQueue')) || []).length;
+            let m = '';
+            if (!navigator.onLine) m = '📴 ઇન્ટરનેટ બંધ છે — બિલ ફોનમાં સેવ થશે, નેટ આવતા ઑટો ક્લાઉડમાં જશે' + (q ? ' (' + q + ' બાકી)' : '');
+            else if (q) m = '☁️ ' + q + ' એન્ટ્રી ક્લાઉડમાં મોકલવાની બાકી છે…';
+            el.textContent = m; el.classList.toggle('hidden', !m);
+        }
+
+        // ---- બિલ નંબર ----
+        function nextBillNo() { const all = JSON.parse(localStorage.getItem('komalBills')) || []; return all.reduce((m, b) => Math.max(m, +b.no || 0), 0) + 1; }
+        function assignBillNos() {
+            const all = JSON.parse(localStorage.getItem('komalBills')) || [];
+            let m = all.reduce((x, b) => Math.max(x, +b.no || 0), 0), ch = false;
+            all.slice().sort((a, b) => a.id - b.id).forEach(b => { if (!b.no) { b.no = ++m; ch = true; } });
+            if (ch) localStorage.setItem('komalBills', JSON.stringify(all));
+        }
+
+        // ---- બિલ કાઢી નાખવું (soft delete, ક્લાઉડમાં પણ સિંક) ----
+        function deleteBill(id) {
+            if (isStaff()) return;
+            const bills = JSON.parse(localStorage.getItem('komalBills')) || [];
+            const b = bills.find(x => x.id === id); if (!b) return;
+            if (!confirm('બિલ નં. ' + (b.no || '-') + ' (' + b.farmerName + ', ₹' + b.totalBill + ') કાઢી નાખવું?\nઆ પાછું લાવી શકાશે નહીં.')) return;
+            b.deleted = true; b.updatedAt = Date.now();
+            localStorage.setItem('komalBills', JSON.stringify(bills));
+            syncToSheet(b); updateHero(); refreshCustomers(); refreshReports(); updateNet();
+            toast('🗑️ બિલ કાઢી નાખ્યું');
+        }
+
+        // ---- સ્ટાફ PIN ----
+        async function saveStaffPin() {
+            const sp = document.getElementById('settingStaffPin').value.trim(), cp = getPin();
+            if (isStaff()) return;
+            if (sp.length < 4) { alert('સ્ટાફ PIN ઓછામાં ઓછો ૪ આંકડાનો રાખો (૬ વધુ સારો).'); return; }
+            if (!cp) { alert('પહેલા માલિક PIN થી લૉગિન કરો.'); return; }
+            if (sp === cp) { alert('સ્ટાફ PIN માલિક PIN થી અલગ રાખો.'); return; }
+            if (!(window.crypto && crypto.subtle)) { alert('આ માટે સુરક્ષિત (https) વેબસાઇટ જોઈએ.'); return; }
+            localStorage.setItem('komalStaffBlob', JSON.stringify(await makeStaffBlob(sp, cp)));
+            document.getElementById('settingStaffPin').value = '';
+            openSettings();
+            toast('✅ સ્ટાફ PIN સેવ — હવે "સેટઅપ લિંક" સ્ટાફને મોકલો');
+        }
+
+        // ---- રિપોર્ટ વ્યૂ ----
+        function refreshReports() { if (!document.getElementById('reportsSection').classList.contains('hidden')) setRepView(curRepView); }
+        function setRepView(v) {
+            if (isStaff()) v = 'list';
+            curRepView = v;
+            document.querySelectorAll('#repSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+            [...document.getElementById('reportsSection').children].forEach(c => {
+                if (c.id === 'repSeg') return;
+                c.style.display = ((c.dataset.rv || 'list') === v) ? '' : 'none';
+            });
+            if (v === 'list') generateReport(); else if (v === 'month') renderMonthly(); else renderLedger();
+        }
+
+        // ---- દૈનિક સારાંશ ----
+        function renderDaySummary(s, e, n, w, b, r, cash, online, pend) {
+            window._ds = { s, e, n, w, b, r, cash, online, pend };
+            document.getElementById('dsTitle').innerText = (s === e ? 'દૈનિક સારાંશ — ' : 'સારાંશ — ') + fmtD(s) + (s === e ? '' : ' થી ' + fmtD(e));
+            document.getElementById('dsCount').innerText = n;
+            document.getElementById('dsWeight').innerText = n2(w) + ' kg';
+            document.getElementById('dsBill').innerText = '₹' + money(b);
+            document.getElementById('dsRec').innerText = '₹' + money(r);
+        }
+        function shareDaySummary() {
+            const d = window._ds; if (!d) return;
+            const t = `*🌾 કોમલ ડેરી ફાર્મ - સારાંશ*\n📅 ${fmtD(d.s)}${d.s !== d.e ? ' થી ' + fmtD(d.e) : ''}\n🧾 બિલ: ${d.n}\n📦 કુલ જથ્થો: ${n2(d.w)} કિલો\n💰 કુલ બિલ: ₹${n2(d.b)}\n💵 જમા: ₹${n2(d.r)} (રોકડા ₹${n2(d.cash)} | ઓનલાઈન ₹${n2(d.online)})\n⏳ બાકી: ₹${n2(d.pend)}`;
+            window.open('https://wa.me/?text=' + encodeURIComponent(nd(t)), '_blank');
+        }
+
+        // ---- મહિના પ્રમાણે રિપોર્ટ ----
+        function monthLabel(ym) { const p = ym.split('-'); return GMONTHS[+p[1] - 1] + ' ' + p[0]; }
+        function sumBills(arr) { return arr.reduce((t, b) => { t.n++; t.w += +b.totalWeight || 0; t.b += +b.totalBill || 0; t.r += +b.received || 0; t.s += +b.shortage || 0; return t; }, { n: 0, w: 0, b: 0, r: 0, s: 0 }); }
+        function pickMonth(ym) { document.getElementById('monthPick').value = ym; renderMonthly(); window.scrollTo(0, 0); }
+        function renderMonthly() {
+            const mp = document.getElementById('monthPick'); if (!mp.value) mp.value = todayStr().slice(0, 7);
+            const ym = mp.value, all = liveBills(), inMonth = all.filter(b => (b.date || '').slice(0, 7) === ym);
+            const byDay = {}; inMonth.forEach(b => (byDay[b.date] = byDay[b.date] || []).push(b));
+            const dates = Object.keys(byDay).sort(), T = sumBills(inMonth);
+            window._mrows = dates.map(d => [d, sumBills(byDay[d])]); window._mT = T; window._mYM = ym;
+            const cards = [['બિલ', T.n], ['આવેલ જથ્થો', n2(T.w) + ' kg'], ['કુલ બિલ', '₹' + money(T.b)], ['જમા', '₹' + money(T.r)], ['બાકી', '₹' + money(Math.max(0, T.b - T.r))], ['ઘટ્ટ', n2(T.s) + ' kg']];
+            document.getElementById('monthCards').innerHTML = cards.map((c, i) => `<div class="bg-white p-3 rounded-xl shadow-sm border text-center"><p class="text-[10px] text-gray-500 font-bold">${c[0]}</p><h3 class="text-lg font-extrabold ${i === 5 ? 'text-red-600' : 'text-gray-800'} mt-1">${c[1]}</h3></div>`).join('');
+            const row = (a, s, cls) => `<tr class="border-b ${cls || ''}"><td class="p-2 whitespace-nowrap">${a}</td><td class="p-2">${s.n}</td><td class="p-2">${n2(s.w)}</td><td class="p-2">₹${money(s.b)}</td><td class="p-2">₹${money(s.r)}</td><td class="p-2 text-red-600 font-bold">${n2(s.s)}</td></tr>`;
+            document.getElementById('monthBody').innerHTML = dates.length ? window._mrows.map(x => row(fmtD(x[0]).slice(0, 5), x[1])).join('') + row('કુલ', T, 'bg-green-50 font-bold') : '<tr><td colspan="6" class="p-4 text-center text-gray-400">કોઈ ડેટા નથી</td></tr>';
+            const bm = {}; all.forEach(b => { const k = (b.date || '').slice(0, 7); if (k) (bm[k] = bm[k] || []).push(b); });
+            document.getElementById('allMonthsBody').innerHTML = Object.keys(bm).sort().reverse().map(k => {
+                const s = sumBills(bm[k]);
+                return `<tr class="border-b ${k === ym ? 'bg-yellow-50' : ''}" onclick="pickMonth('${k}')" style="cursor:pointer"><td class="p-2 font-bold whitespace-nowrap">${monthLabel(k)}</td><td class="p-2">${s.n}</td><td class="p-2">${n2(s.w)}</td><td class="p-2">₹${money(s.b)}</td><td class="p-2">₹${money(s.r)}</td><td class="p-2 text-red-600 font-bold">${n2(s.s)}</td></tr>`;
+            }).join('');
+        }
+        function downloadMonthly() {
+            if (!window._mrows || !window._mrows.length) { alert('કોઈ ડેટા નથી.'); return; }
+            const q = x => '"' + String(x).replace(/"/g, '""') + '"';
+            const head = ['તારીખ', 'બિલ', 'જથ્થો kg', 'કુલ બિલ', 'જમા', 'ઘટ્ટ kg'];
+            const rows = window._mrows.map(x => [fmtD(x[0]), x[1].n, n2(x[1].w), n2(x[1].b), n2(x[1].r), n2(x[1].s)]);
+            const T = window._mT; rows.push(['કુલ', T.n, n2(T.w), n2(T.b), n2(T.r), n2(T.s)]);
+            saveFile('Komal_Month_' + window._mYM + '.csv', '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+        }
+
+        // ---- ગ્રાહકની ખાતાવહી ----
+        function ledgerGroups() {
+            const m = new Map();
+            liveBills().forEach(b => {
+                const k = custKey({ name: b.farmerName, mobile: b.mobileNo });
+                let g = m.get(k);
+                if (!g) { g = { key: k, name: b.farmerName, business: b.businessName, village: b.village, mobile: b.mobileNo, n: 0, bill: 0, rec: 0, last: 0 }; m.set(k, g); }
+                if ((b.id || 0) >= g.last) { g.last = b.id; g.name = b.farmerName; g.business = b.businessName; g.village = b.village; g.mobile = b.mobileNo; }
+                g.n++; g.bill += +b.totalBill || 0; g.rec += +b.received || 0;
+            });
+            return [...m.values()].map(g => Object.assign(g, { bal: +(g.bill - g.rec).toFixed(2) }));
+        }
+        function ledgerBillsOf(key) { return liveBills().filter(b => custKey({ name: b.farmerName, mobile: b.mobileNo }) === key).sort((a, b) => a.id - b.id); }
+        function renderLedger() {
+            const q = document.getElementById('ledSearch').value.trim().toLowerCase(), only = document.getElementById('ledOnlyPend').checked;
+            let list = ledgerGroups();
+            const totalPend = list.reduce((s, g) => s + Math.max(0, g.bal), 0);
+            list = list.filter(g => (!q || [g.name, g.mobile, g.village, g.business].join(' ').toLowerCase().includes(q)) && (!only || g.bal > 0.5));
+            list.sort((a, b) => b.bal - a.bal || String(a.name).localeCompare(String(b.name), 'gu'));
+            window._ledShown = list;
+            document.getElementById('ledTotalPend').innerText = '₹' + money(totalPend);
+            document.getElementById('ledList').innerHTML = list.length ? list.map((g, i) => `
+                <button type="button" onclick="openLedger(${i})" class="w-full text-left p-3 rounded-xl border bg-white active:bg-green-50 flex justify-between items-center gap-3">
+                    <div class="min-w-0">
+                        <div class="font-bold text-gray-800 truncate">${g.name}${g.business ? ` <span class="text-green-600 text-xs">(${g.business})</span>` : ''}</div>
+                        <div class="text-xs text-gray-500">${g.n} બિલ • કુલ ₹${money(g.bill)} • જમા ₹${money(g.rec)}${g.village ? ' • ' + g.village : ''}</div>
+                    </div>
+                    <div class="text-right flex-shrink-0 font-extrabold ${g.bal > 0.5 ? 'text-red-600' : 'text-green-700'}">${g.bal > 0.5 ? '₹' + money(g.bal) : 'ચૂકતે'}</div>
+                </button>`).join('') : '<p class="text-center text-gray-400 text-sm p-4">કોઈ ગ્રાહક નથી</p>';
+        }
+        function openLedger(i) { window._ledKey = window._ledShown[i].key; renderLedgerModal(); document.getElementById('ledgerModal').classList.remove('hidden'); }
+        function closeLedger() { document.getElementById('ledgerModal').classList.add('hidden'); }
+        function ledgerCur() { return ledgerGroups().find(x => x.key === window._ledKey) || { name: '', bill: 0, rec: 0, bal: 0, mobile: '', village: '', n: 0 }; }
+        function renderLedgerModal() {
+            const bills = ledgerBillsOf(window._ledKey), g = ledgerCur();
+            document.getElementById('ledName').innerText = g.name + (g.business ? ' (' + g.business + ')' : '');
+            document.getElementById('ledSub').innerText = [g.mobile, g.village].filter(Boolean).join(' • ');
+            document.getElementById('ledBill').innerText = '₹' + money(g.bill);
+            document.getElementById('ledRec').innerText = '₹' + money(g.rec);
+            document.getElementById('ledBal').innerText = '₹' + money(g.bal);
+            document.getElementById('ledBills').innerHTML = bills.map(b => {
+                const p = +((b.totalBill || 0) - (b.received || 0)).toFixed(2);
+                const pays = (b.payments || []).map(x => `<div class="text-[10px] text-green-700">↳ ${fmtD(x.date)} જમા ₹${n2(x.amt)}</div>`).join('');
+                return `<div class="p-3 rounded-lg border bg-gray-50">
+                    <div class="flex justify-between text-sm"><b>બિલ નં. ${b.no || '-'} • ${b.fDate}</b><b>₹${n2(b.totalBill)}</b></div>
+                    <div class="flex justify-between text-xs text-gray-600 mt-1"><span>જમા ₹${n2(b.received)} (${b.paymentMode})</span><span class="${p > 0.005 ? 'text-red-600' : 'text-green-700'} font-bold">${p > 0.005 ? 'બાકી ₹' + n2(p) : 'ચૂકતે'}</span></div>
+                    ${pays}
+                    ${p > 0.005 ? `<button type="button" onclick="recordPayment(${b.id})" class="mt-2 bg-green-600 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fas fa-plus mr-1"></i>જમા લો</button>` : ''}
+                </div>`;
+            }).join('');
+        }
+        function recordPayment(id) {
+            const all = JSON.parse(localStorage.getItem('komalBills')) || [];
+            const b = all.find(x => x.id === id); if (!b) return;
+            const pend = (b.totalBill || 0) - (b.received || 0);
+            const v = prompt('બિલ નં. ' + (b.no || '-') + ' — બાકી ₹' + n2(pend) + '\nકેટલી રકમ જમા લીધી? (₹)', n2(pend));
+            if (v === null) return;
+            const amt = parseFloat(v);
+            if (!(amt > 0)) { alert('સાચી રકમ લખો.'); return; }
+            b.received = +((b.received || 0) + amt).toFixed(2);
+            b.pending = Math.max(0, +((b.totalBill || 0) - b.received).toFixed(2));
+            b.payments = (b.payments || []).concat([{ date: todayStr(), amt }]);
+            b.updatedAt = Date.now();
+            localStorage.setItem('komalBills', JSON.stringify(all));
+            syncToSheet(b); renderLedgerModal(); renderLedger(); updateHero(); updateNet();
+            toast('✅ ₹' + n2(amt) + ' જમા થયા');
+        }
+        function ledgerShare() {
+            const bills = ledgerBillsOf(window._ledKey), g = ledgerCur();
+            let t = `*🌾 કોમલ ડેરી ફાર્મ - ખાતાવહી*\n👤 ${g.name}\n---------------------------\n`;
+            bills.forEach(b => { const p = (b.totalBill || 0) - (b.received || 0); t += `🧾 નં.${b.no || '-'} | ${b.fDate} | ₹${n2(b.totalBill)} | જમા ₹${n2(b.received)}${p > 0.005 ? ' | બાકી ₹' + n2(p) : ''}\n`; });
+            t += `---------------------------\n⏳ *કુલ બાકી:* ₹${n2(g.bal)}\n🙏 આભાર!`;
+            window.open(`https://wa.me/${waNum(g.mobile)}?text=${encodeURIComponent(nd(t))}`, '_blank');
+        }
+        function ledgerCall() { const g = ledgerCur(); if (!g.mobile) { alert('મોબાઈલ નંબર નથી.'); return; } location.href = 'tel:' + normPhone(g.mobile); }
+        function ledgerPrint() {
+            const bills = ledgerBillsOf(window._ledKey), g = ledgerCur();
+            let rows = '', run = 0;
+            bills.forEach(b => { const p = (b.totalBill || 0) - (b.received || 0); run += p; rows += `<tr><td>${b.no || '-'}</td><td>${b.fDate}</td><td>${n2(b.totalBill)}</td><td>${n2(b.received)}</td><td>${n2(p)}</td><td>${n2(run)}</td></tr>`; });
+            const html = `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>ખાતાવહી</title><style>body{font-family:Arial;padding:15px;font-size:14px}.h{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px;text-align:center}th{background:#f4f4f4}.t{text-align:right;font-weight:bold;font-size:17px;margin-top:12px;color:#b91c1c}</style></head><body><div class="h"><h2>કોમલ ડેરી ફાર્મ</h2><h3>ખાતાવહી — ${g.name}</h3><p>${[g.mobile, g.village].filter(Boolean).join(' • ')}</p></div><table><thead><tr><th>બિલ નં.</th><th>તારીખ</th><th>બિલ ₹</th><th>જમા ₹</th><th>બાકી ₹</th><th>કુલ બાકી ₹</th></tr></thead><tbody>${rows}</tbody></table><div class="t">કુલ બાકી: ₹${n2(g.bal)}</div><script>window.onload=function(){window.print()}<\/script></body></html>`;
+            const w = window.open('', '_blank'); if (!w) { alert('પ્રિન્ટ વિન્ડો ખુલી નથી.'); return; }
+            w.document.write(nd(html)); w.document.close();
+        }
+
+        function initV2() {
+            document.getElementById('lblShortage').parentElement.style.display = 'none';   // ઘટ્ટ બિલ-ફોર્મમાં નહીં, ફક્ત રિપોર્ટમાં
+            document.getElementById('repFilter').after(document.getElementById('daySummary'));
+            document.getElementById('digitBtn').textContent = numLang() === 'gu' ? '૧૨૩' : '123';
+            assignBillNos(); applyRole(); updateNet();
+            _mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+            runLocalize();
         }
 
         window.onload = () => {
             document.body.appendChild(document.getElementById('custModal'));
+            initV2();
             refreshCustomers();
             document.getElementById('farmerName').addEventListener('change', e => {
                 const c = getCustomers().find(x => x.name === e.target.value.trim()); if (c) fillCustomer(c, true);
@@ -1316,8 +1695,9 @@ ${labor}---------------------------
             initRatesDisplay();
             if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
             applySetupLink(); updateHero(); initSegs(); flushQueue(); pullFromSheet();
-            window.addEventListener('online', () => { flushQueue(); pullFromSheet(); });
-            setInterval(pullFromSheet, 60000);
+            window.addEventListener('online', () => { updateNet(); flushQueue().then(updateNet); pullFromSheet(); });
+            window.addEventListener('offline', updateNet);
+            setInterval(() => { flushQueue().then(updateNet); pullFromSheet(); updateNet(); }, 60000);
             ['bagWeight','bagQty'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addBag(); } }));
             document.getElementById('billingForm').addEventListener('submit', e => e.preventDefault());
         }
@@ -1328,6 +1708,24 @@ ${labor}---------------------------
             <h3 class="text-lg font-bold text-gray-800 mb-3"><i class="fas fa-users mr-2 text-indigo-600"></i>ગ્રાહક યાદી</h3>
             <input type="search" id="custSearch" oninput="renderCustomers()" placeholder="નામ / નંબર / ગામ શોધો" class="w-full p-3 border rounded-lg bg-gray-50 mb-3 text-base">
             <div id="custList" class="space-y-2" style="overflow-y:auto;flex:1;"></div>
+        </div>
+    </div>
+<div id="ledgerModal" class="hidden fixed inset-0 bg-black/60 z-[66] flex justify-center items-end sm:items-center backdrop-blur-sm">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl p-4 w-full sm:w-[90%] sm:max-w-md shadow-2xl relative" style="max-height:90vh;display:flex;flex-direction:column;">
+            <button type="button" onclick="closeLedger()" class="absolute top-1 right-1 w-11 h-11 text-gray-400 text-3xl font-light" aria-label="બંધ કરો">&times;</button>
+            <h3 id="ledName" class="text-lg font-bold text-gray-800 pr-10"></h3>
+            <p id="ledSub" class="text-xs text-gray-500 mb-3"></p>
+            <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                <div class="bg-gray-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">કુલ બિલ</p><b id="ledBill" class="text-gray-800"></b></div>
+                <div class="bg-green-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">જમા</p><b id="ledRec" class="text-green-700"></b></div>
+                <div class="bg-red-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">બાકી</p><b id="ledBal" class="text-red-600"></b></div>
+            </div>
+            <div id="ledBills" class="space-y-2" style="overflow-y:auto;flex:1;"></div>
+            <div class="grid grid-cols-3 gap-2 mt-3">
+                <button type="button" onclick="ledgerShare()" class="bg-[#25D366] text-white font-bold py-3 rounded-xl text-sm"><i class="fab fa-whatsapp mr-1"></i>યાદી</button>
+                <button type="button" onclick="ledgerCall()" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fas fa-phone mr-1"></i>કોલ</button>
+                <button type="button" onclick="ledgerPrint()" class="bg-gray-800 text-white font-bold py-3 rounded-xl text-sm"><i class="fas fa-print mr-1"></i>પ્રિન્ટ</button>
+            </div>
         </div>
     </div>
 </body>
