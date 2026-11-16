@@ -70,6 +70,11 @@
         .rseg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; background: #eef2ee; padding: 4px; border-radius: 14px; }
         .rseg button { padding: 10px 4px; min-height: 44px; border-radius: 11px; font-weight: 700; color: #4b5563; font-size: 14px; }
         .rseg button.on { background: #fff; color: #14532d; box-shadow: 0 2px 8px rgba(20,83,45,.18); outline: 2px solid #d9bd7a; }
+            #kdfw-print-area { display: none; }
+        @media print {
+            body > *:not(#kdfw-print-area) { display: none !important; }
+            #kdfw-print-area { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: #ffffff; padding: 10mm; z-index: 99999; }
+        }
     </style>
 </head>
 <body class="text-gray-800" style="padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));">
@@ -669,8 +674,22 @@
         }
         function sheetPost(bill) {
             const url = getSheetUrl();
-            if (!url || !getPin()) return Promise.resolve();
-            return fetch(authUrl(url), { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(bill) });
+            if (!url) return Promise.resolve();
+            const target = getPin() ? authUrl(url) : url;
+            return fetch(target, {
+                method: 'POST',
+                redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(bill)
+            }).catch(() => {
+                return fetch(target, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    keepalive: true,
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(bill)
+                });
+            });
         }
         function syncToSheet(bill) {
             if (!getSheetUrl()) return;
@@ -1146,12 +1165,26 @@ ${labor}---------------------------
         function callBillCurrent() { if (currentBillData) callSend(currentBillData); }
         function smsBillCurrent() { if (currentBillData) smsSend(currentBillData); }
 
+        function directPrintHtml(htmlContent) {
+            let pa = document.getElementById('kdfw-print-area');
+            if (!pa) {
+                pa = document.createElement('div');
+                pa.id = 'kdfw-print-area';
+                document.body.appendChild(pa);
+            }
+            pa.innerHTML = htmlContent;
+            setTimeout(() => { window.print(); }, 150);
+        }
         function printBill() {
-            if (!generatedBillDataURL) { alert('ફોટો તૈયાર નથી.'); return; }
-            const w = window.open('', '_blank');
-            if (!w) { alert('પ્રિન્ટ વિન્ડો ખુલી નથી. "ફોટો ડાઉનલોડ" વાપરો.'); return; }
-            w.document.write(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>બિલ</title><style>body{margin:0;text-align:center}img{width:100%;max-width:560px}@page{margin:10mm}</style></head><body><img src="${generatedBillDataURL}" onload="setTimeout(function(){window.print()},300)"></body></html>`);
-            w.document.close();
+            if (currentBillData) fillBillTemplate(currentBillData);
+            const tpl = document.getElementById('billTemplate');
+            if (tpl) {
+                directPrintHtml('<div style="max-width:550px;margin:0 auto;border:2px solid #16a34a;padding:20px;border-radius:10px">' + tpl.innerHTML + '</div>');
+                return;
+            }
+            if (generatedBillDataURL) {
+                directPrintHtml('<div style="text-align:center"><img src="' + generatedBillDataURL + '" style="width:100%;max-width:560px"></div>');
+            }
         }
         function downloadBillImage() {
             if (!generatedBillDataURL || !currentBillData) { alert('ફોટો તૈયાર નથી.'); return; }
@@ -1337,21 +1370,19 @@ ${labor}---------------------------
 
             if(filteredBills.length === 0) { alert("કોઈ ડેટા નથી."); return; }
 
-            let html = `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>ઘટ્ટ રિપોર્ટ</title><style>body{font-family:Arial;padding:15px;font-size:14px}.header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:15px}table{width:100%;border-collapse:collapse;margin-bottom:15px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background:#f4f4f4}.shortage-col{color:red;font-weight:bold}.footer{text-align:right;font-weight:bold}</style></head><body>
-            <div class="header"><h2>કોમલ ડેરી ફાર્મ</h2><h3>ઘટ્ટ રિપોર્ટ</h3><p>${startDate} થી ${endDate}</p></div>
-            <table><thead><tr><th>તારીખ</th><th>નામ</th><th>આવેલ (kg)</th><th>સારા (kg)</th><th>જીણા (kg)</th><th>ઘટ્ટ (kg)</th></tr></thead><tbody>`;
+            let html = `<div style="font-family:Arial,sans-serif;padding:15px;font-size:14px;border:2px solid #14532d;border-radius:10px">
+            <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:15px"><h2>કોમલ ડેરી ફાર્મ — ઘટ્ટ રિપોર્ટ</h2><p>${startDate} થી ${endDate}</p></div>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:15px"><thead><tr style="background:#f4f4f4"><th style="border:1px solid #ddd;padding:8px">તારીખ</th><th style="border:1px solid #ddd;padding:8px">નામ</th><th style="border:1px solid #ddd;padding:8px">આવેલ (kg)</th><th style="border:1px solid #ddd;padding:8px">સારા (kg)</th><th style="border:1px solid #ddd;padding:8px">જીણા (kg)</th><th style="border:1px solid #ddd;padding:8px">ઘટ્ટ (kg)</th></tr></thead><tbody>`;
             
             let finalShortage = 0, finalTotalWeight = 0;
             filteredBills.forEach(b => {
                 let dName = b.businessName ? `${b.farmerName} (${b.businessName})` : b.farmerName;
-                html += `<tr><td>${b.fDate}</td><td style="text-align:left">${dName}</td><td>${b.totalWeight}</td><td>${b.goodWheat}</td><td>${b.thinWheat}</td><td class="shortage-col">${b.shortage.toFixed(2)}</td></tr>`;
+                html += `<tr><td style="border:1px solid #ddd;padding:8px;text-align:center">${b.fDate}</td><td style="border:1px solid #ddd;padding:8px;text-align:left">${dName}</td><td style="border:1px solid #ddd;padding:8px;text-align:center">${b.totalWeight}</td><td style="border:1px solid #ddd;padding:8px;text-align:center">${b.goodWheat}</td><td style="border:1px solid #ddd;padding:8px;text-align:center">${b.thinWheat}</td><td style="border:1px solid #ddd;padding:8px;text-align:center;color:red;font-weight:bold">${b.shortage.toFixed(2)}</td></tr>`;
                 finalShortage += b.shortage; finalTotalWeight += b.totalWeight;
             });
 
-            html += `</tbody></table><div class="footer"><p>કુલ આવેલ: ${finalTotalWeight} kg</p><p style="color:red;font-size:18px">એકંદર ઘટ્ટ: ${finalShortage.toFixed(2)} kg</p></div><script>window.onload=function(){window.print()}<\/script></body></html>`;
-            let printWin = window.open('', '_blank');
-            printWin.document.write(html);
-            printWin.document.close();
+            html += `</tbody></table><div style="text-align:right;font-weight:bold"><p>કુલ આવેલ: ${finalTotalWeight} kg</p><p style="color:red;font-size:18px">એકંદર ઘટ્ટ: ${finalShortage.toFixed(2)} kg</p></div></div>`;
+            directPrintHtml(html);
         }
 
         // ---- ગ્રાહક યાદી: બિલમાંથી આપોઆપ + મેન્યુઅલ સેવ ----
@@ -1657,14 +1688,37 @@ ${labor}---------------------------
             t += `---------------------------\n⏳ *કુલ બાકી:* ₹${n2(g.bal)}\n🙏 આભાર!`;
             window.open(`https://wa.me/${waNum(g.mobile)}?text=${encodeURIComponent(nd(t))}`, '_blank');
         }
+        function ledgerSms() {
+            const g = ledgerCur();
+            const msg = `કોમલ ડેરી ફાર્મ (મોટીઝેર): નમસ્તે ${g.name}, આપના ખાતામાં કુલ બિલ ₹${n2(g.bill)}, જમા ₹${n2(g.rec)} અને બાકી લેણું ₹${n2(g.bal)} છે. મો. 8866214018`;
+            location.href = g.mobile ? `sms:${normPhone(g.mobile)}?body=${encodeURIComponent(nd(msg))}` : `sms:?body=${encodeURIComponent(nd(msg))}`;
+        }
         function ledgerCall() { const g = ledgerCur(); if (!g.mobile) { alert('મોબાઈલ નંબર નથી.'); return; } location.href = 'tel:' + normPhone(g.mobile); }
         function ledgerPrint() {
             const bills = ledgerBillsOf(window._ledKey), g = ledgerCur();
             let rows = '', run = 0;
-            bills.forEach(b => { const p = (b.totalBill || 0) - (b.received || 0); run += p; rows += `<tr><td>${b.no || '-'}</td><td>${b.fDate}</td><td>${n2(b.totalBill)}</td><td>${n2(b.received)}</td><td>${n2(p)}</td><td>${n2(run)}</td></tr>`; });
-            const html = `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>ખાતાવહી</title><style>body{font-family:Arial;padding:15px;font-size:14px}.h{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px;text-align:center}th{background:#f4f4f4}.t{text-align:right;font-weight:bold;font-size:17px;margin-top:12px;color:#b91c1c}</style></head><body><div class="h"><h2>કોમલ ડેરી ફાર્મ</h2><h3>ખાતાવહી — ${g.name}</h3><p>${[g.mobile, g.village].filter(Boolean).join(' • ')}</p></div><table><thead><tr><th>બિલ નં.</th><th>તારીખ</th><th>બિલ ₹</th><th>જમા ₹</th><th>બાકી ₹</th><th>કુલ બાકી ₹</th></tr></thead><tbody>${rows}</tbody></table><div class="t">કુલ બાકી: ₹${n2(g.bal)}</div><script>window.onload=function(){window.print()}<\/script></body></html>`;
-            const w = window.open('', '_blank'); if (!w) { alert('પ્રિન્ટ વિન્ડો ખુલી નથી.'); return; }
-            w.document.write(nd(html)); w.document.close();
+            bills.forEach(b => { const p = (b.totalBill || 0) - (b.received || 0); run += p; rows += `<tr><td style="border:1px solid #334155;padding:7px;text-align:center">${b.no || '-'}</td><td style="border:1px solid #334155;padding:7px;text-align:center">${b.fDate}</td><td style="border:1px solid #334155;padding:7px;text-align:center">${b.totalWeight || 0} kg</td><td style="border:1px solid #334155;padding:7px;text-align:right">₹${n2(b.totalBill)}</td><td style="border:1px solid #334155;padding:7px;text-align:right;color:#15803d;font-weight:bold">₹${n2(b.received)}</td><td style="border:1px solid #334155;padding:7px;text-align:right;color:#b91c1c;font-weight:bold">₹${n2(p)}</td><td style="border:1px solid #334155;padding:7px;text-align:right;font-weight:bold">₹${n2(run)}</td></tr>`; });
+            if (!rows) rows = `<tr><td colspan="7" style="border:1px solid #334155;padding:12px;text-align:center">કોઈ બિલ નોંધાયેલ નથી</td></tr>`;
+            const html = `<div style="font-family:Arial,sans-serif;padding:12px;color:#0f172a;border:2px solid #14532d;border-radius:10px">
+              <div style="text-align:center;border-bottom:2px solid #14532d;padding-bottom:10px;margin-bottom:14px">
+                <h2 style="margin:0;color:#14532d;font-size:22px">કોમલ ડેરી ફાર્મ — ઘઉં ગ્રેડિંગ અને પેકિંગ સિસ્ટમ</h2>
+                <p style="margin:4px 0;font-size:12px">મુ. પો. મોટીઝેર, તા. કપડવંજ, જી. ખેડા | રમેશભાઈ: ૭૮૭૪૫૨૭૯૦૫ | રાજ: ૮૮૬૬૨૧૪૦૧૮</p>
+                <div style="display:inline-block;background:#14532d;color:#fff;padding:4px 12px;border-radius:6px;font-weight:bold;font-size:13px;margin-top:4px">ગ્રાહક ખાતાવહી સ્ટેટમેન્ટ (LEDGER STATEMENT)</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px">
+                <div><b>ગ્રાહકનું નામ:</b> ${g.name}${g.business ? ' (' + g.business + ')' : ''}</div>
+                <div><b>ગામ:</b> ${g.village || '-'} | <b>મોબાઈલ:</b> ${g.mobile || '-'}</div>
+              </div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">
+                <thead><tr style="background:#e2e8f0"><th style="border:1px solid #334155;padding:7px">બિલ નં.</th><th style="border:1px solid #334155;padding:7px">તારીખ</th><th style="border:1px solid #334155;padding:7px">જથ્થો</th><th style="border:1px solid #334155;padding:7px;text-align:right">કુલ બિલ ₹</th><th style="border:1px solid #334155;padding:7px;text-align:right">જમા ₹</th><th style="border:1px solid #334155;padding:7px;text-align:right">બાકી ₹</th><th style="border:1px solid #334155;padding:7px;text-align:right">કુલ બાકી ₹</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:#fef2f2;border:2px solid #dc2626;padding:10px 14px;border-radius:8px;font-weight:bold;font-size:15px">
+                <span>કુલ બિલ: ₹${n2(g.bill)} | કુલ જમા: ₹${n2(g.rec)}</span>
+                <span style="color:#b91c1c;font-size:17px">ચોખ્ખું બાકી લેણું: ₹${n2(g.bal)}</span>
+              </div>
+            </div>`;
+            directPrintHtml(nd(html));
         }
 
         function initV2() {
@@ -1721,10 +1775,11 @@ ${labor}---------------------------
                 <div class="bg-red-50 rounded-lg p-2"><p class="text-[10px] text-gray-500 font-bold">બાકી</p><b id="ledBal" class="text-red-600"></b></div>
             </div>
             <div id="ledBills" class="space-y-2" style="overflow-y:auto;flex:1;"></div>
-            <div class="grid grid-cols-3 gap-2 mt-3">
-                <button type="button" onclick="ledgerShare()" class="bg-[#25D366] text-white font-bold py-3 rounded-xl text-sm"><i class="fab fa-whatsapp mr-1"></i>યાદી</button>
-                <button type="button" onclick="ledgerCall()" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fas fa-phone mr-1"></i>કોલ</button>
-                <button type="button" onclick="ledgerPrint()" class="bg-gray-800 text-white font-bold py-3 rounded-xl text-sm"><i class="fas fa-print mr-1"></i>પ્રિન્ટ</button>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                <button type="button" onclick="ledgerCall()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm"><i class="fas fa-phone mr-1"></i>કોલ કરો</button>
+                <button type="button" onclick="ledgerSms()" class="bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm"><i class="fas fa-comment-sms mr-1"></i>SMS મેસેજ</button>
+                <button type="button" onclick="ledgerShare()" class="bg-[#25D366] text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</button>
+                <button type="button" onclick="ledgerPrint()" class="bg-gray-800 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm"><i class="fas fa-print mr-1"></i>પ્રિન્ટ / PDF</button>
             </div>
         </div>
     </div>
